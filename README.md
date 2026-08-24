@@ -17,6 +17,7 @@ contact.html       contact details
 css/style.css      all styling; design tokens live in :root
 js/main.js         nav toggle + footer year
 assets/            images and SVGs exported from Figma
+tools/stamp-css.sh cache-busts the stylesheet link; see below
 ```
 
 ## Running locally
@@ -28,6 +29,15 @@ python3 -m http.server 8000
 ```
 
 Then visit <http://localhost:8000>.
+
+## After editing the stylesheet
+
+Run `./tools/stamp-css.sh` before committing. It rewrites every
+`<link rel="stylesheet">` to `css/style.css?v=<hash>`, where the hash comes
+from the file's contents. Without it a deploy can look like it did nothing:
+GitHub Pages caches assets for ten minutes, and the stylesheet URL alone
+never changes. The script is idempotent, so running it when nothing changed
+rewrites nothing.
 
 ## Deploying
 
