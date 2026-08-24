@@ -47,7 +47,6 @@ with an underscore are served as-is.
 
 ## Still to fill in
 
-- `about.html` — the bio is still the Lorem ipsum placeholder from the Figma file.
 - `contact.html` — LinkedIn row was removed for want of a handle; add it back
   when there is one.
 - `videography.html` — reels 2 and 3 currently point at the same TikTok

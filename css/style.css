@@ -272,6 +272,9 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   max-width: 26rem;
 }
 
+/* The bio runs to two paragraphs; .about__bio zeroes the default margin. */
+.about__bio + .about__bio { margin-top: 0.9rem; }
+
 .about__portrait {
   width: 100%;
   max-width: 469px;      /* Figma box */
