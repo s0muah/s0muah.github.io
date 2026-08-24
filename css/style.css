@@ -233,7 +233,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   to   { opacity: 1; transform: scale(1); }
 }
 
-@keyframes hero-rise {
+@keyframes rise-in {
   from { opacity: 0; transform: translateY(1.6rem); }
   to   { opacity: 1; transform: translateY(0); }
 }
@@ -260,7 +260,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 }
 
 .hero__wordmark {
-  animation-name: hero-rise;
+  animation-name: rise-in;
   animation-duration: 1.05s;
   animation-delay: 0.26s;
 }
@@ -272,7 +272,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 }
 
 .hero__tag-group {
-  animation-name: hero-rise;
+  animation-name: rise-in;
   animation-duration: 0.8s;
   animation-delay: 0.95s;
 }
@@ -304,6 +304,23 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 }
 
 .section-heading--lg { font-size: clamp(1.15rem, 1.9vw, 1.5rem); } /* 24px */
+
+/* Interior pages get one restrained entrance, reusing the hero's keyframe:
+   the heading rises, the content follows a beat behind it. Deliberately two
+   moving parts per page — the pages are dense, and staggering every section
+   would turn reading into waiting.
+
+   projects.html has no visible title, so its grid carries the whole
+   entrance on the second step. */
+.page__title,
+.videography__title {
+  animation: rise-in 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.05s both;
+}
+
+.page > :not(.page__title):not(.visually-hidden),
+.videography__content > :not(.videography__title) {
+  animation: rise-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.18s both;
+}
 
 /* --------------------------------------------------------------------------
    About page
