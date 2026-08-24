@@ -475,6 +475,8 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   gap: clamp(1rem, 2.6vw, 2.44rem);          /* 39px between 276px cards */
 }
 
+.reels > li { flex: 0 0 auto; }
+
 .reel {
   position: relative;
   display: block;
@@ -659,7 +661,9 @@ a.contact__value:focus-visible {
 
   .videography__copy { max-width: none; }
 
-  .reel { width: 100%; max-width: 340px; height: 210px; }
+  .reels { flex-direction: column; align-items: flex-start; }
+  .reels > li { width: 100%; max-width: 340px; }
+  .reel { width: 100%; height: 210px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
