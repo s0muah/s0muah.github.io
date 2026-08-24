@@ -354,6 +354,10 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 /* The bio runs to two paragraphs; .about__bio zeroes the default margin. */
 .about__bio + .about__bio { margin-top: 0.9rem; }
 
+/* <picture> is inline by default, which would strip the auto margins off the
+   image inside it. */
+.about__portrait-col > picture { display: block; }
+
 .about__portrait {
   width: 100%;
   max-width: 469px;      /* Figma box */
