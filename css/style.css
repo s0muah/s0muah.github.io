@@ -218,6 +218,68 @@ a.hero__tag:hover,
 a.hero__tag:focus-visible { color: var(--gold-solid); }
 
 /* --------------------------------------------------------------------------
+   Homepage entrance
+   The composition assembles in the order it was drawn: the gold ellipse
+   blooms open, the wordmark rises behind it, then the portrait steps into
+   frame from below the clipped bottom edge, and the role tags settle last.
+
+   These animate `transform`, which is a separate property from the
+   `translate` used for centring above — so the entrance never has to
+   restate, or accidentally clobber, the layout's own offsets.
+   -------------------------------------------------------------------------- */
+
+@keyframes hero-bloom {
+  from { opacity: 0; transform: scale(0.68); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(1.6rem); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-step-in {
+  from { opacity: 0; transform: translateY(3rem) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.hero__circle,
+.hero__wordmark,
+.hero__portrait,
+.hero__tag-group {
+  /* `both` holds the opening frame before the delay elapses, so nothing
+     flashes at full opacity first. */
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.hero__circle {
+  animation-name: hero-bloom;
+  animation-duration: 1.15s;
+  animation-delay: 0.08s;
+}
+
+.hero__wordmark {
+  animation-name: hero-rise;
+  animation-duration: 1.05s;
+  animation-delay: 0.26s;
+}
+
+.hero__portrait {
+  animation-name: hero-step-in;
+  animation-duration: 1.25s;
+  animation-delay: 0.42s;
+}
+
+.hero__tag-group {
+  animation-name: hero-rise;
+  animation-duration: 0.8s;
+  animation-delay: 0.95s;
+}
+
+.hero__tag-group--right { animation-delay: 1.08s; }
+
+/* --------------------------------------------------------------------------
    Generic page scaffolding for the interior pages
    -------------------------------------------------------------------------- */
 
@@ -698,6 +760,10 @@ a.contact__value:focus-visible {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    /* Without this the hero's staggered delays would still apply, leaving
+       the tags invisible for a second before snapping in. */
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
