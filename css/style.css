@@ -280,35 +280,36 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   object-fit: contain;
 }
 
-/* Hand-drawn arrows: decorative, sized to the exported SVG geometry. */
+/* Hand-drawn arrows: decorative, sized to the exported SVG geometry.
+   Both the size and the negative offsets are expressed as a share of the
+   1512px Figma frame so the arrows keep pointing at the same spot as the
+   columns narrow, and capped in px so they stop growing past the frame. */
 .arrow {
   position: absolute;
+  height: auto;
   pointer-events: none;
   user-select: none;
   z-index: 2;
 }
 
 .arrow--education {
-  width: 132.74px;
-  height: 78.05px;
+  width: min(8.78vw, 132.74px);
   top: -1.5rem;
-  left: -9rem;
+  left: calc(-1 * min(9.52vw, 144px));
   rotate: -18.21deg;
 }
 
 .arrow--journey {
-  width: 111.48px;
-  height: 93.07px;
+  width: min(7.37vw, 111.48px);
   top: -0.5rem;
-  left: -8rem;
+  left: calc(-1 * min(8.47vw, 128px));
   rotate: -23.62deg;
 }
 
 .arrow--achievements {
-  width: 205.74px;
-  height: 101.68px;
+  width: min(13.61vw, 205.74px);
   top: -1rem;
-  right: -13rem;
+  right: calc(-1 * min(13.76vw, 208px));
   rotate: 7.54deg;
 }
 
@@ -322,7 +323,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 
 .school-list li {
   font-family: var(--accent);
-  font-size: clamp(0.8rem, 1vw, 0.875rem);   /* 14px */
+  font-size: 0.875rem;   /* 14px */
   line-height: 1.4;
   letter-spacing: 0.02em;
 }
@@ -602,14 +603,23 @@ a.contact__value:focus-visible {
    Responsive reflow
    -------------------------------------------------------------------------- */
 
-@media (max-width: 1200px) {
+/* The three-column Figma layout only holds together while the journey column
+   is wide enough for its two entry columns (~512px, i.e. ~1400px of viewport).
+   Below that it degrades into one very tall column beside dead space. */
+@media (max-width: 1400px) {
+  /* Two columns: the portrait runs alongside the three short sections and
+     journey — much the tallest block — takes the full width underneath. */
   .about {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
-      "intro    portrait"
+      "intro     portrait"
       "education portrait"
-      "achieve  journey";
+      "achieve   portrait"
+      "journey   journey";
   }
+
+  .about__portrait { max-width: min(100%, 380px); }
+
   /* Arrows point at layout that no longer exists once things reflow. */
   .arrow { display: none; }
 }
@@ -643,12 +653,15 @@ a.contact__value:focus-visible {
 
   .hero__tag-group--right { text-align: left; }
 
+  /* Single column. The heading leads so the page reads before it is scrolled;
+     the portrait follows it rather than pushing it below the fold. */
   .about {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "portrait" "intro" "education" "achieve" "journey";
+    grid-template-areas: "intro" "portrait" "education" "achieve" "journey";
+    row-gap: clamp(2rem, 6vw, 2.75rem);
   }
 
-  .about__portrait { max-width: 300px; }
+  .about__portrait { max-width: min(66vw, 300px); }
 
   .projects { grid-template-columns: minmax(0, 1fr); }
 
@@ -664,6 +677,18 @@ a.contact__value:focus-visible {
   .reels { flex-direction: column; align-items: flex-start; }
   .reels > li { width: 100%; max-width: 340px; }
   .reel { width: 100%; height: 210px; }
+}
+
+@media (max-width: 560px) {
+  /* Below this the column is narrower than the desk-width text boxes, so let
+     the copy use the full gutter-to-gutter measure instead of overflowing. */
+  .about__bio { max-width: none; }
+
+  .entry { max-width: none; }
+
+  /* Explicit single track: the auto-fit minmax(15rem) floor would otherwise
+     force a track wider than the viewport on the smallest phones. */
+  .entry-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
