@@ -370,6 +370,14 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   max-width: 412px;   /* Figma title box; preserves the designed line breaks */
 }
 
+/* Brand mark for a project that has one; sized from its own artwork so it
+   never picks up a shared image rule. */
+.project__mark {
+  width: clamp(9rem, 15vw, 13.75rem);
+  height: auto;
+  margin-top: clamp(1.25rem, 2.5vw, 2rem);
+}
+
 .project__body {
   font-family: var(--body);
   font-size: clamp(1rem, 1.6vw, 1.5rem);     /* 24px */
