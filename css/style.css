@@ -725,15 +725,34 @@ a.contact__value:focus-visible {
 
   .hero { height: calc(100vh - 4.5rem); min-height: 460px; }
 
-  .hero__circle { width: min(70vw, 46vh); }
+  /* Scaled up from the old 70vw/68%: at phone sizes the composition was
+     sitting in the lower two thirds with a dead band under the nav. */
+  .hero__circle { width: min(80vw, 52vh); }
 
-  .hero__portrait { height: min(68%, 62vh); }
+  .hero__portrait { height: min(80%, 72vh); }
 
-  .hero__wordmark { top: 38%; font-size: clamp(3rem, 17vw, 7rem); }
+  .hero__wordmark { top: 33%; font-size: clamp(3rem, 18vw, 7rem); }
 
-  .hero__tags { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+  /* Keep the designed left/right corners rather than stacking all four tags
+     into one column, which piled them on top of the figure. */
+  .hero__tags {
+    align-items: flex-end;
+    gap: 1rem;
+    isolation: isolate;   /* so the scrim below stays above the portrait */
+  }
 
-  .hero__tag-group--right { text-align: left; }
+  .hero__tag { font-size: clamp(0.6rem, 2.9vw, 0.8rem); }
+
+  /* The tags now sit over the portrait's lower half; a bottom fade keeps
+     white text off cream trousers readable without a hard bar. */
+  .hero__tags::before {
+    content: "";
+    position: absolute;
+    inset: -3rem 0 -4rem;
+    background: linear-gradient(to top, rgba(1, 1, 1, 0.88), rgba(1, 1, 1, 0));
+    z-index: -1;
+    pointer-events: none;
+  }
 
   /* Single column. The heading leads so the page reads before it is scrolled;
      the portrait follows it rather than pushing it below the fold. */
@@ -745,7 +764,15 @@ a.contact__value:focus-visible {
 
   .about__portrait { max-width: min(66vw, 300px); }
 
-  .projects { grid-template-columns: minmax(0, 1fr); }
+  .projects { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+
+  /* Stacked, every project is a wall of text against the next one. A hairline
+     and real breathing room give the column some rhythm to scan by. */
+  .project + .project {
+    margin-top: clamp(1.75rem, 6vw, 2.5rem);
+    padding-top: clamp(1.75rem, 6vw, 2.5rem);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
 
   .videography__portrait-frame {
     left: auto; right: 0; top: auto; bottom: 0;
@@ -756,9 +783,25 @@ a.contact__value:focus-visible {
 
   .videography__copy { max-width: none; }
 
-  .reels { flex-direction: column; align-items: flex-start; }
-  .reels > li { width: 100%; max-width: 340px; }
-  .reel { width: 100%; height: 210px; }
+  /* Centring a taller-than-viewport column just pushed the title down behind
+     a band of background; start it from the top instead. */
+  .videography__content {
+    min-height: 0;
+    justify-content: flex-start;
+    padding-top: clamp(1.5rem, 5vh, 2.5rem);
+  }
+
+  .reels { flex-direction: column; align-items: stretch; }
+
+  /* Was capped at 340px inside a ~350px column, so the cards sat a few pixels
+     shy of the copy's right edge. Let them align flush with the text. */
+  .reels > li { width: 100%; max-width: none; }
+
+  /* reel-1 and reel-2 are phone screenshots: a 16:9 video letterboxed inside
+     a 9:19.5 frame, with the black bars baked into the PNG. At 4:3 the crop
+     was wide enough to show them as grey slabs through the card veil. 16:9
+     lands almost exactly on the video band, so the bars fall outside it. */
+  .reel { width: 100%; height: auto; aspect-ratio: 16 / 9; }
 }
 
 @media (max-width: 560px) {
@@ -771,6 +814,13 @@ a.contact__value:focus-visible {
   /* Explicit single track: the auto-fit minmax(15rem) floor would otherwise
      force a track wider than the viewport on the smallest phones. */
   .entry-grid { grid-template-columns: minmax(0, 1fr); }
+
+  /* The 7rem label column only held for the short values - the email wrapped
+     to its own line, so half the rows aligned one way and half the other.
+     Stack every row and they share one left edge. */
+  .contact__row { flex-direction: column; gap: 0.15rem; }
+
+  .contact__label { min-width: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
