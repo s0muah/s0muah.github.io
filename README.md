@@ -47,7 +47,5 @@ with an underscore are served as-is.
 
 ## Still to fill in
 
-- `contact.html` — LinkedIn row was removed for want of a handle; add it back
-  when there is one.
 - `videography.html` — reels 2 and 3 currently point at the same TikTok
   (`ZSVQm136c`); replace reel 3 with its own link.
