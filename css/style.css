@@ -129,8 +129,11 @@ a { color: inherit; }
 
 .hero {
   position: relative;
-  /* Definite height so the portrait's percentage height resolves. */
+  /* Definite height so the portrait's percentage height resolves. The svh
+     line wins where supported: on phones 100vh is the height with the URL
+     bar hidden, so reserving it pushes the tags below the fold. */
   height: calc(100vh - 5.5rem);
+  height: calc(100svh - 5.5rem);
   min-height: 520px;
   max-width: var(--maxw);
   margin: 0 auto;
@@ -711,31 +714,54 @@ a.contact__value:focus-visible {
 }
 
 @media (max-width: 900px) {
-  .nav { position: relative; flex-wrap: wrap; }
+  .nav { position: relative; }
 
   .nav__toggle { display: block; }
 
+  /* Brand and toggle stay above the overlay so MENU can still close it. */
+  .nav__brand,
+  .nav__toggle { position: relative; z-index: 2; }
+
+  /* A full-screen panel rather than a strip: opening the menu used to push
+     the whole composition down by 173px and start the page scrolling, and a
+     part-height dropdown just sliced across the middle of the wordmark. This
+     fills the screen, so it lands the same way at every viewport height. */
   .nav__menu {
-    flex-basis: 100%;
+    position: fixed;
+    inset: 0;
+    z-index: 1;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.85rem;
-    padding: 1rem 0 0.25rem;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 5rem var(--gutter);
+    background: var(--bg);
   }
+
+  .nav__menu .nav__link { font-size: 1.25rem; }
+
+  /* Set by main.js while the panel is open - see the note there. */
+  .nav-open,
+  .nav-open body { overflow: hidden; }
 
   .nav__menu[data-collapsed="true"] { display: none; }
 
   .nav__brand, .nav__link, .hero__tag { font-size: 0.8rem; }
 
-  .hero { height: calc(100vh - 4.5rem); min-height: 460px; }
+  .hero {
+    height: calc(100vh - 4.5rem);
+    height: calc(100svh - 4.5rem);
+    min-height: 460px;
+  }
 
   /* Scaled up from the old 70vw/68%: at phone sizes the composition was
      sitting in the lower two thirds with a dead band under the nav. */
-  .hero__circle { width: min(80vw, 52vh); }
+  .hero__circle { top: 42%; width: min(80vw, 52vh); }
 
   .hero__portrait { height: min(80%, 72vh); }
 
-  .hero__wordmark { top: 33%; font-size: clamp(3rem, 18vw, 7rem); }
+  .hero__wordmark { top: 24%; font-size: clamp(3rem, 18vw, 7rem); }
 
   /* Keep the designed left/right corners rather than stacking all four tags
      into one column, which piled them on top of the figure. */
