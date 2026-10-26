@@ -170,6 +170,12 @@
           (data.type === "onCurrentTime" && data.value && data.value.currentTime > 0)) {
         stopLoading(token);
       } else if (data.type === "onPlayerReady") {
+        // The embed may still start muted despite muted=0. The click that
+        // opened the player counts as the gesture browsers want for sound.
+        ["unMute", "play"].forEach(function (type) {
+          iframe.contentWindow.postMessage(
+            { "x-tiktok-player": true, type: type }, "https://www.tiktok.com");
+        });
         setTimeout(function () { stopLoading(token); }, READY_GRACE);
       }
     });
@@ -180,7 +186,7 @@
         opener = reel;
         var iframe = document.createElement("iframe");
         iframe.src = "https://www.tiktok.com/player/v1/" + reel.dataset.tiktok +
-          "?autoplay=1&rel=0&description=0&music_info=0";
+          "?autoplay=1&muted=0&rel=0&description=0&music_info=0";
         iframe.title = reel.getAttribute("aria-label");
         iframe.allow = "autoplay; fullscreen; encrypted-media; picture-in-picture";
         iframe.allowFullscreen = true;
