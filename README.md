@@ -42,6 +42,23 @@ contents. Without it a deploy can look like it did nothing: GitHub Pages
 caches assets for ten minutes, and the URLs alone never change. The script
 is idempotent, so running it when nothing changed rewrites nothing.
 
+## Preview card and icons
+
+`assets/og-card.png` is the 1200x630 image link previews show (WhatsApp,
+LinkedIn, X). It is a screenshot of `tools/og-card.html`; edit that, serve the
+site locally, then capture it with headless Chrome:
+
+```sh
+chrome --headless=new --hide-scrollbars --virtual-time-budget=8000 \
+  --window-size=1200,630 --screenshot=assets/og-card.png \
+  http://localhost:8000/tools/og-card.html
+```
+
+`favicon.svg` is the tab icon. Its PNG fallbacks come from capturing
+`tools/favicon.svg.html` the same way at 512x512 (headless Chrome will not
+open a window much smaller) and scaling the result down to 180px
+(`apple-touch-icon.png`) and 32px (`favicon-32.png`).
+
 ## Deploying
 
 Push to `main`, then in the repository settings enable **Pages → Deploy from a

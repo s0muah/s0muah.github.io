@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- Source for assets/og-card.png, the link-preview image shown by
+     WhatsApp, LinkedIn etc. See "Preview card and icons" in the README. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Boldonse&family=Inter:wght@400;700&display=block">
+<style>
+  html, body { margin: 0; }
+  body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    position: relative;
+    background: #010101;
+    color: #fff;
+    font-family: "Inter", sans-serif;
+  }
+  .circle {
+    position: absolute;
+    width: 480px;
+    height: 480px;
+    right: 90px;
+    top: 75px;
+  }
+  .portrait {
+    position: absolute;
+    right: 120px;
+    bottom: 0;
+    height: 580px;
+  }
+  .text {
+    position: absolute;
+    left: 80px;
+    top: 50%;
+    translate: 0 -50%;
+    width: 560px;
+  }
+  .name {
+    margin: 0 0 28px;
+    font-family: "Boldonse", sans-serif;
+    font-size: 54px;
+    line-height: 1.35;
+  }
+  .roles {
+    margin: 0 0 40px;
+    font-size: 26px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .url {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #c6983c;
+  }
+</style>
+</head>
+<body>
+  <img class="circle" src="../assets/ellipse-gold.svg" alt="">
+  <img class="portrait" src="../assets/portrait-home.png" alt="">
+  <div class="text">
+    <p class="name">SARPONG<br>JEFFREY</p>
+    <p class="roles">Computer Engineer<br>Mobile Videographer<br>UI/UX Designer</p>
+    <p class="url">s0muah.github.io</p>
+  </div>
+</body>
+</html>
