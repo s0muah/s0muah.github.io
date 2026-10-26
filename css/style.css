@@ -13,7 +13,7 @@
   --green:       #56a741;                    /* journey / achievement labels */
   --wordmark:    rgba(255, 255, 255, 0.71);  /* "SOMUAH" */
   --scrim:       rgba(18, 15, 15, 0.84);     /* videography overlay */
-  --card-veil:   rgba(217, 217, 217, 0.4);   /* reel card wash */
+  --card-veil:   rgba(0, 0, 0, 0.18);        /* reel card tint */
   --muted:       rgba(255, 255, 255, 0.62);
   --surface:     rgba(255, 255, 255, 0.06);  /* empty reel card */
   --hairline:    rgba(255, 255, 255, 0.12);
@@ -22,7 +22,6 @@
 
   --display: "Boldonse", "Arial Black", system-ui, sans-serif;
   --body:    "Inter", system-ui, -apple-system, sans-serif;
-  --accent:  "Bellota", "Comic Sans MS", cursive;
 
   /* The Figma frame is 1512x982; page gutters scale from that. */
   --gutter: clamp(1.25rem, 4.2vw, 4rem);
@@ -420,8 +419,12 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 .about {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1.7fr);
+  /* Intro and journey each span two rows so the short education block no
+     longer sets the height of the first row: in a plain two-row grid the
+     tall intro stretched it, leaving a dead band under education. */
   grid-template-areas:
     "intro   portrait education"
+    "intro   portrait journey"
     "achieve portrait journey";
   gap: clamp(1.5rem, 3vw, 3rem);
   align-items: start;
@@ -434,7 +437,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 .about__journey     { grid-area: journey; position: relative; }
 
 .about__bio {
-  font-family: var(--accent);
+  font-family: var(--body);
   font-size: clamp(1rem, 1.35vw, 1.25rem);   /* 20px */
   line-height: 1.45;
   color: var(--fg);
@@ -499,13 +502,14 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 }
 
 .school-list li {
-  font-family: var(--accent);
+  font-family: var(--body);
   font-size: 0.875rem;   /* 14px */
   line-height: 1.4;
   letter-spacing: 0.02em;
 }
 
-/* Entry blocks — green title, white supporting lines (Bellota Bold, 16px). */
+/* Entry blocks — green bold title, plain supporting lines, 16px. The design
+   set these in Bellota; Inter now carries all body text site-wide. */
 .entry-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
@@ -513,14 +517,13 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 }
 
 .entry {
-  font-family: var(--accent);
-  font-weight: 700;
+  font-family: var(--body);
   font-size: 1rem;      /* 16px */
-  line-height: 1.35;
+  line-height: 1.4;
   max-width: 20rem;
 }
 
-.entry__role { color: var(--green); margin: 0; }
+.entry__role { color: var(--green); font-weight: 700; margin: 0; }
 .entry__line { color: var(--fg); margin: 0; }
 
 .entry-stack {
@@ -680,8 +683,15 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: scale 0.4s ease;
 }
 
+.reel:hover .reel__thumb,
+.reel:focus-visible .reel__thumb { scale: 1.05; }
+
+/* The design's 40% grey wash read as fog across thirty covers. A light dark
+   tint instead keeps the colour and still lifts the white play button; it
+   clears on hover. Same in both themes - it sits on the footage. */
 .reel::after {
   content: "";
   position: absolute;
@@ -691,7 +701,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 }
 
 .reel:hover::after,
-.reel:focus-visible::after { background: rgba(217, 217, 217, 0.18); }
+.reel:focus-visible::after { background: transparent; }
 
 .reel__play {
   position: absolute;
@@ -700,6 +710,7 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   width: clamp(44px, 30%, 64px);
   height: auto;
   z-index: 1;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
   transition: scale 0.25s ease;
 }
 
@@ -896,6 +907,56 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
    Contact page
    -------------------------------------------------------------------------- */
 
+/* Contact sits in the left column; the gold call-to-action fills the right,
+   which used to be half a screen of nothing. */
+.contact-page {
+  display: grid;
+  grid-template-columns: minmax(0, 46rem) minmax(0, 1fr);
+  column-gap: clamp(2rem, 5vw, 5rem);
+  align-items: start;
+}
+
+.contact-page > .page__title,
+.contact-page > .contact { grid-column: 1; }
+
+/* Fixed gold and ink rather than theme tokens: light mode's deeper gold
+   would sink the dark lettering. */
+.contact-cta {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: center;
+  width: min(100%, 26rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #c6983c;
+  color: #010101;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  text-align: center;
+  text-decoration: none;
+  transition: scale 0.3s ease;
+}
+
+.contact-cta:hover,
+.contact-cta:focus-visible { scale: 1.03; }
+
+.contact-cta__text {
+  font-family: var(--display);
+  font-size: clamp(1.6rem, 2.9vw, 2.6rem);
+  line-height: 1.3;
+}
+
+.contact-cta__hint {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+}
+
 .contact {
   display: grid;
   gap: clamp(1.5rem, 3vw, 2.5rem);
@@ -960,13 +1021,106 @@ a.contact__value:focus-visible {
   gap: 0.75rem 1.5rem;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--accent);
+  font-family: var(--body);
   font-size: 0.875rem;
   color: var(--muted);
 }
 
-.footer a { text-decoration: none; border-bottom: 1px solid transparent; }
-.footer a:hover, .footer a:focus-visible { color: var(--fg); border-bottom-color: var(--gold-solid); }
+/* --------------------------------------------------------------------------
+   Now playing — latest Spotify track, via Last.fm (see main.js). Hidden until
+   there is a track to show.
+   -------------------------------------------------------------------------- */
+
+.np {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  max-width: min(100%, 22rem);
+  padding: 0.4rem 1rem 0.4rem 0.4rem;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--fg);
+  text-decoration: none;
+  transition: border-color 0.22s ease;
+}
+
+.np:hover,
+.np:focus-visible { border-color: var(--gold-solid); }
+
+/* `hidden` loses to the display rules above without this. */
+.np[hidden],
+.np__art[hidden] { display: none; }
+
+/* Round, and turning while the track plays: a record on the deck. */
+.np__art {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.np--playing .np__art { animation: np-spin 8s linear infinite; }
+
+.np__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.np__status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-solid);
+}
+
+.np__track {
+  font-family: var(--body);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Equaliser bars, only while something is actually playing. */
+.np__bars { display: none; align-items: flex-end; gap: 2px; height: 0.7rem; }
+.np--playing .np__bars { display: inline-flex; }
+
+.np__bars span {
+  width: 3px;
+  height: 100%;
+  background: currentColor;
+  transform-origin: bottom;
+  animation: np-bar 0.9s ease-in-out infinite alternate;
+}
+
+.np__bars span:nth-child(2) { animation-delay: -0.3s; }
+.np__bars span:nth-child(3) { animation-delay: -0.6s; }
+
+@keyframes np-bar { from { scale: 1 0.3; } to { scale: 1 1; } }
+@keyframes np-spin { to { rotate: 360deg; } }
+
+/* On the home page it sits centred in the empty band above the ellipse. */
+.hero .np {
+  position: absolute;
+  top: clamp(0.25rem, 2vh, 1.5rem);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 3;
+  animation: rise-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 1.2s both;
+}
+
+/* :not(.np) — the now-playing pill has its own border and hover. */
+.footer a:not(.np) { text-decoration: none; border-bottom: 1px solid transparent; }
+.footer a:not(.np):hover, .footer a:not(.np):focus-visible { color: var(--fg); border-bottom-color: var(--gold-solid); }
 
 /* --------------------------------------------------------------------------
    Responsive reflow
@@ -1080,6 +1234,10 @@ a.contact__value:focus-visible {
   .about__portrait { max-width: min(66vw, 300px); }
 
   .projects { grid-template-columns: minmax(0, 1fr); row-gap: 0; }
+
+  /* One column: no empty half left to fill. */
+  .contact-page { display: block; }
+  .contact-cta { display: none; }
 
   /* Stacked, every project is a wall of text against the next one. A hairline
      and real breathing room give the column some rhythm to scan by. */

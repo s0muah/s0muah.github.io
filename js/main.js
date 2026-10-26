@@ -66,6 +66,57 @@
     });
   }
 
+  // Now playing: the latest Spotify track, by way of Last.fm, which Spotify
+  // scrobbles to. A Last.fm API key is meant to be public (read-only, no
+  // secret), unlike Spotify's, which would need a server to hide it. The
+  // badges stay hidden until there is a track to show.
+  var npWidgets = document.querySelectorAll(".np");
+  var NP_URL = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks" +
+    "&user=s0muah&api_key=ee5ebc689edbf0647492066446e11794&format=json&limit=1";
+  var NP_POLL = 30000;
+  // Last.fm's grey star, served when a track has no artwork.
+  var NP_NO_ART = "2a96cbd8b46e442fc41c2b86b821562f";
+
+  var showTrack = function (track) {
+    var playing = !!(track["@attr"] && track["@attr"].nowplaying === "true");
+    var label = playing ? "Now playing" : "Last played";
+    var text = track.name + " — " + track.artist["#text"];
+    var art = "";
+    (track.image || []).forEach(function (img) {
+      if (img.size === "medium") art = img["#text"];
+    });
+    if (art.indexOf(NP_NO_ART) !== -1) art = "";
+
+    Array.prototype.forEach.call(npWidgets, function (w) {
+      w.hidden = false;
+      w.href = track.url;
+      w.classList.toggle("np--playing", playing);
+      w.setAttribute("aria-label", label + " on Spotify: " + text);
+      w.querySelector(".np__label").textContent = label;
+      w.querySelector(".np__track").textContent = text;
+      var img = w.querySelector(".np__art");
+      if (art) { img.src = art; img.hidden = false; } else { img.hidden = true; }
+    });
+  };
+
+  var refreshNowPlaying = function () {
+    if (document.hidden) return;
+    fetch(NP_URL)
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        // A single result comes back as an object rather than an array.
+        var tracks = [].concat((data && data.recenttracks && data.recenttracks.track) || []);
+        if (tracks.length) showTrack(tracks[0]);
+      })
+      .catch(function () {});
+  };
+
+  if (npWidgets.length && window.fetch) {
+    refreshNowPlaying();
+    setInterval(refreshNowPlaying, NP_POLL);
+    document.addEventListener("visibilitychange", refreshNowPlaying);
+  }
+
   Array.prototype.forEach.call(document.querySelectorAll("[data-year]"), function (el) {
     el.textContent = String(new Date().getFullYear());
   });
