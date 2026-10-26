@@ -14,6 +14,8 @@ about.html         bio, education, achievements, journey
 projects.html      PATRIOT, Kromthrift, Automatic Relay, Mobile Phone Detector
 videography.html   every TikTok reel, played in-page
 contact.html       contact details
+CV_Jeffrey_Sarpong.pdf  the CV behind the about and contact download buttons;
+                   replace the file under the same name to update it
 css/style.css      all styling; design tokens live in :root, light-mode
                    overrides in :root[data-theme="light"]
 js/main.js         nav toggle, light/dark switch, footer year, reel player

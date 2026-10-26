@@ -385,9 +385,37 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   animation: rise-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.18s both;
 }
 
+/* Outlined call-to-action in the nav's type and the theme's gold; fills on
+   hover. Used for the CV download on the about and contact pages. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-self: start;   /* stay content-width inside grid parents */
+  padding: 0.85rem 1.4rem;
+  border: 2px solid var(--gold-solid);
+  border-radius: 999px;
+  color: var(--fg);
+  font-family: var(--display);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-decoration: none;
+  transition: background-color 0.22s ease, color 0.22s ease;
+}
+
+.button svg { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; }
+
+.button:hover,
+.button:focus-visible {
+  background: var(--gold-solid);
+  color: var(--bg);
+}
+
 /* --------------------------------------------------------------------------
    About page
    -------------------------------------------------------------------------- */
+
+.about__cv { margin-top: 1.5rem; }
 
 .about {
   display: grid;
