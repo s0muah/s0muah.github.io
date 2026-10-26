@@ -26,7 +26,7 @@
      Deciding here, before first paint, keeps the page from flashing first.
      The timeout is a failsafe in case main.js never runs to remove it. -->
 <script>try { if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { document.documentElement.classList.add("export-pending"); setTimeout(function () { document.documentElement.classList.remove("export-pending"); }, 9000); } } catch (e) {}</script>
-<link rel="stylesheet" href="css/style.css?v=1fe400bd">
+<link rel="stylesheet" href="css/style.css?v=d26b2a75">
 </head>
 <body>
 
@@ -67,18 +67,6 @@
       </button>
     </nav>
   </header>
-
-  <div class="np-bar">
-    <a class="np" href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer" hidden>
-      <span class="np__disc" aria-hidden="true"><img class="np__art" alt="" width="64" height="64" hidden></span>
-      <span class="np__text">
-        <span class="np__status"><span class="np__bars" aria-hidden="true"><span></span><span></span><span></span></span><span class="np__label">Now playing</span></span>
-        <span class="np__title"></span>
-        <span class="np__artist"></span>
-      </span>
-      <svg class="np__go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
-    </a>
-  </div>
 
   <main class="videography__content">
     <h1 class="videography__title">An eye for detail</h1>
@@ -311,6 +299,21 @@
   </div>
 </dialog>
 
-<script src="js/main.js?v=b8700387"></script>
+<!-- Floating now-playing mini-player; main.js fills, peeks and tucks it. -->
+<a class="np" href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer" hidden>
+  <span class="np__disc" aria-hidden="true"><img class="np__art" alt="" width="64" height="64" hidden></span>
+  <span class="np__more">
+    <span class="np__body">
+      <span class="np__text">
+        <span class="np__status"><span class="np__bars" aria-hidden="true"><span></span><span></span><span></span></span><span class="np__label">Now playing</span></span>
+        <span class="np__title"></span>
+        <span class="np__artist"></span>
+      </span>
+      <svg class="np__go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+    </span>
+  </span>
+</a>
+
+<script src="js/main.js?v=496163f0"></script>
 </body>
 </html>

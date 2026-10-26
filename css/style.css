@@ -19,6 +19,7 @@
   --hairline:    rgba(255, 255, 255, 0.12);
   --fade:        rgba(1, 1, 1, 0.88);        /* mobile hero tag backing */
   --fade-clear:  rgba(1, 1, 1, 0);
+  --np-bg:       rgba(16, 14, 12, 0.78);     /* floating now-playing */
 
   --display: "Boldonse", "Arial Black", system-ui, sans-serif;
   --body:    "Inter", system-ui, -apple-system, sans-serif;
@@ -47,6 +48,7 @@
   --hairline:    rgba(20, 18, 16, 0.14);
   --fade:        rgba(246, 242, 234, 0.9);
   --fade-clear:  rgba(246, 242, 234, 0);
+  --np-bg:       rgba(250, 247, 241, 0.86);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -1031,33 +1033,79 @@ a.contact__value:focus-visible {
    there is a track to show.
    -------------------------------------------------------------------------- */
 
-/* A frosted pill: vinyl on the left, track in the middle, arrow out. */
+/* A floating mini-player in the bottom-right corner. At rest it is just the
+   record; .np--open slides the track details out beside it (main.js opens
+   it for a few seconds on load and on a new track, and on hover or tap).
+   .np--away tucks it below the fold while the visitor scrolls down. */
 .np {
-  display: inline-flex;
+  position: fixed;
+  right: var(--gutter);
+  bottom: var(--np-bottom, clamp(1rem, 3vh, 1.75rem));
+  z-index: 40;
+  display: flex;
   align-items: center;
-  gap: 0.85rem;
-  max-width: min(100%, 24rem);
-  padding: 0.45rem 1.1rem 0.45rem 0.45rem;
+  padding: 0.4rem;
   border: 1px solid var(--hairline);
   border-radius: 999px;
-  background: var(--surface);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: var(--np-bg);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   color: var(--fg);
   text-decoration: none;
-  transition: border-color 0.25s ease, box-shadow 0.4s ease, translate 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.4s ease,
+    translate 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease;
 }
 
 /* Warm glow only while something is actually on. */
 .np--playing {
   border-color: rgba(198, 152, 60, 0.45);
-  box-shadow: 0 6px 28px rgba(198, 152, 60, 0.18);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3), 0 4px 26px rgba(198, 152, 60, 0.2);
 }
 
 .np:hover,
-.np:focus-visible {
-  border-color: var(--gold-solid);
-  translate: 0 -2px;
+.np:focus-visible { border-color: var(--gold-solid); }
+
+.np--away {
+  translate: 0 calc(100% + 2.5rem);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* On the home page, clear of the role tags in the bottom corners. */
+:root:has(.hero) { --np-bottom: clamp(5.5rem, 13vh, 8rem); }
+
+/* Out of the way of the full-screen phone menu. */
+.nav-open .np { opacity: 0; pointer-events: none; }
+
+/* The sliding half. A 0fr -> 1fr grid column animates to the content's own
+   width, which max-width cannot do without a guessed number. */
+.np__more {
+  display: grid;
+  grid-template-columns: 0fr;
+  overflow: hidden;
+  transition: grid-template-columns 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.np--open .np__more { grid-template-columns: 1fr; }
+
+/* Padding collapses with the column; left in place it would hold the
+   closed pill open by its own width. */
+.np__body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease, padding 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.np--open .np__body {
+  padding: 0 0.6rem 0 0.85rem;
+  opacity: 1;
+  transition-delay: 0.12s, 0s;
 }
 
 /* `hidden` loses to the display rules above and below without this. */
@@ -1114,6 +1162,7 @@ a.contact__value:focus-visible {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  max-width: min(15rem, 60vw);
   gap: 0.1rem;
 }
 
@@ -1137,6 +1186,8 @@ a.contact__value:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.np__status { white-space: nowrap; }
 
 .np__title { font-weight: 700; font-size: 0.9rem; line-height: 1.25; }
 .np__artist { font-size: 0.78rem; line-height: 1.25; color: var(--muted); }
@@ -1174,34 +1225,6 @@ a.contact__value:focus-visible {
 
 @keyframes np-bar { from { scale: 1 0.3; } to { scale: 1 1; } }
 @keyframes np-spin { to { rotate: 360deg; } }
-
-/* Interior pages: centred directly under the nav, so it is seen first. The
-   bar collapses to nothing while the badge is hidden. Raised above the
-   videography page's portrait layer. */
-.np-bar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 0 var(--gutter);
-}
-
-.np-bar .np { animation: rise-in 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
-
-/* On the home page it sits centred in the empty band above the ellipse. */
-.hero .np {
-  position: absolute;
-  top: clamp(0.25rem, 2vh, 1.5rem);
-  /* Centred by margins, not translate, which the hover lift uses. */
-  left: 0;
-  right: 0;
-  width: max-content;
-  margin: 0 auto;
-  z-index: 3;
-  animation: rise-in 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 1.2s both;
-}
 
 .footer a { text-decoration: none; border-bottom: 1px solid transparent; }
 .footer a:hover, .footer a:focus-visible { color: var(--fg); border-bottom-color: var(--gold-solid); }

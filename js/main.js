@@ -69,13 +69,32 @@
   // Now playing: the latest Spotify track, by way of Last.fm, which Spotify
   // scrobbles to. A Last.fm API key is meant to be public (read-only, no
   // secret), unlike Spotify's, which would need a server to hide it. The
-  // badges stay hidden until there is a track to show.
-  var npWidgets = document.querySelectorAll(".np");
+  // mini-player stays hidden until there is a track to show.
+  //
+  // It rests as just the record and opens (.np--open) to show the track:
+  // for NP_PEEK when the page loads or the track changes, while a mouse is
+  // over it or it has focus, and on a first tap - so on touch screens the
+  // first tap reveals and the second follows the link. Scrolling down tucks
+  // it away (.np--away); scrolling up brings it back.
+  var np = document.querySelector(".np");
   var NP_URL = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks" +
     "&user=s0muah&api_key=ee5ebc689edbf0647492066446e11794&format=json&limit=1";
-  var NP_POLL = 30000;
+  var NP_POLL = 30000, NP_PEEK = 4500, NP_TAP_PEEK = 6000, NP_LINGER = 700;
   // Last.fm's grey star, served when a track has no artwork.
   var NP_NO_ART = "2a96cbd8b46e442fc41c2b86b821562f";
+  var npKey = "", npTimer = null;
+
+  var npOpen = function (forMs) {
+    clearTimeout(npTimer);
+    np.classList.add("np--open");
+    if (forMs) npTimer = setTimeout(npClose, forMs);
+  };
+
+  var npClose = function () {
+    clearTimeout(npTimer);
+    if (np.matches(":hover") || np.matches(":focus-visible")) return;
+    np.classList.remove("np--open");
+  };
 
   var showTrack = function (track) {
     var playing = !!(track["@attr"] && track["@attr"].nowplaying === "true");
@@ -92,18 +111,25 @@
     var spotify = "https://open.spotify.com/search/" +
       encodeURIComponent(track.name + " " + artist);
 
-    Array.prototype.forEach.call(npWidgets, function (w) {
-      w.hidden = false;
-      w.href = spotify;
-      w.classList.toggle("np--playing", playing);
-      w.setAttribute("aria-label",
-        label + " on Spotify: " + track.name + " by " + artist);
-      w.querySelector(".np__label").textContent = label;
-      w.querySelector(".np__title").textContent = track.name;
-      w.querySelector(".np__artist").textContent = artist;
-      var img = w.querySelector(".np__art");
-      if (art) { img.src = art; img.hidden = false; } else { img.hidden = true; }
-    });
+    np.hidden = false;
+    np.href = spotify;
+    np.classList.toggle("np--playing", playing);
+    np.setAttribute("aria-label",
+      label + " on Spotify: " + track.name + " by " + artist);
+    np.querySelector(".np__label").textContent = label;
+    np.querySelector(".np__title").textContent = track.name;
+    np.querySelector(".np__artist").textContent = artist;
+    var img = np.querySelector(".np__art");
+    if (art) { img.src = art; img.hidden = false; } else { img.hidden = true; }
+
+    // Peek on first show and whenever the track (or whether it is playing)
+    // changes. Behind the videography intro, wait for it to clear first.
+    var key = track.name + "\n" + artist + "\n" + playing;
+    if (key !== npKey) {
+      var delay = npKey === "" && root.classList.contains("export-pending") ? 5000 : 300;
+      npKey = key;
+      setTimeout(function () { npOpen(NP_PEEK); }, delay);
+    }
   };
 
   var refreshNowPlaying = function () {
@@ -118,10 +144,44 @@
       .catch(function () {});
   };
 
-  if (npWidgets.length && window.fetch) {
+  if (np && window.fetch) {
     refreshNowPlaying();
     setInterval(refreshNowPlaying, NP_POLL);
     document.addEventListener("visibilitychange", refreshNowPlaying);
+
+    // pointerType, not mouseenter: phones fire emulated mouse events on a
+    // tap, which would open it and let the same tap follow the link.
+    np.addEventListener("pointerenter", function (e) {
+      if (e.pointerType === "mouse") npOpen(0);
+    });
+    np.addEventListener("pointerleave", function (e) {
+      if (e.pointerType === "mouse") npTimer = setTimeout(npClose, NP_LINGER);
+    });
+    // Keyboard focus only: a tap also focuses the link in some browsers,
+    // and must not count as the reveal.
+    np.addEventListener("focusin", function () {
+      if (np.matches(":focus-visible")) npOpen(0);
+    });
+    np.addEventListener("focusout", function () {
+      npTimer = setTimeout(npClose, NP_LINGER);
+    });
+
+    np.addEventListener("click", function (e) {
+      if (!np.classList.contains("np--open")) {
+        e.preventDefault();
+        npOpen(NP_TAP_PEEK);
+      }
+    });
+
+    var npLastY = window.scrollY;
+    window.addEventListener("scroll", function () {
+      var y = window.scrollY;
+      if (Math.abs(y - npLastY) < 8) return;
+      var away = y > npLastY && y > 80;
+      np.classList.toggle("np--away", away);
+      if (away) np.classList.remove("np--open");
+      npLastY = y;
+    }, { passive: true });
   }
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-year]"), function (el) {
