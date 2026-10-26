@@ -9,9 +9,27 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bellota:wght@300;400;700&family=Boldonse&family=Inter:wght@400;700&display=swap">
 <script>try { if (localStorage.getItem("theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
-<link rel="stylesheet" href="css/style.css?v=dc42826d">
+<!-- The "exporting" intro plays on every load, but never for reduced motion.
+     Deciding here, before first paint, keeps the page from flashing first.
+     The timeout is a failsafe in case main.js never runs to remove it. -->
+<script>try { if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { document.documentElement.classList.add("export-pending"); setTimeout(function () { document.documentElement.classList.remove("export-pending"); }, 9000); } } catch (e) {}</script>
+<link rel="stylesheet" href="css/style.css?v=aabb6977">
 </head>
 <body>
+
+<!-- Intro styled on CapCut's export screen. main.js drives the ring and
+     removes it; without JS the export-pending class is never set. -->
+<div class="export" aria-hidden="true">
+  <div class="export__dial">
+    <svg class="export__ring" viewBox="0 0 120 120">
+      <circle class="export__track" cx="60" cy="60" r="54"/>
+      <circle class="export__fill" cx="60" cy="60" r="54"/>
+    </svg>
+    <span class="export__pct">0%</span>
+  </div>
+  <p class="export__label">Importing the footage&hellip;</p>
+  <p class="export__hint">Don&rsquo;t lock your screen or switch apps</p>
+</div>
 
 <div class="videography">
   <div class="videography__bg" aria-hidden="true"></div>
@@ -261,8 +279,13 @@
 <dialog class="player" aria-label="Video player">
   <button class="player__close" type="button" aria-label="Close video">&times;</button>
   <div class="player__frame"></div>
+  <!-- Covers TikTok's own spinner until its player has loaded. -->
+  <div class="player__loading" role="status">
+    <svg class="player__spinner" viewBox="0 0 50 50" aria-hidden="true"><circle cx="25" cy="25" r="20"/></svg>
+    <span>Cueing up the reel&hellip;</span>
+  </div>
 </dialog>
 
-<script src="js/main.js"></script>
+<script src="js/main.js?v=c07c0d96"></script>
 </body>
 </html>

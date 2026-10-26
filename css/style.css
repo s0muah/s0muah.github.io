@@ -677,6 +677,90 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 
 .reel:hover .reel__play { scale: 1.08; }
 
+/* "Exporting" intro, after CapCut's export screen. Shown only while <html>
+   has .export-pending (set in the page's <head>); main.js fills the ring,
+   then swaps that class for .export--leaving to fade it out. */
+.export { display: none; }
+
+.export-pending .export,
+.export--leaving {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: var(--bg);
+  cursor: pointer;
+}
+
+.export--leaving { animation: export-out 0.45s ease forwards; }
+
+@keyframes export-out { to { opacity: 0; visibility: hidden; } }
+
+.export-pending,
+.export-pending body { overflow: hidden; }
+
+/* Hold the page's own entrance until the intro has gone, so it is seen. */
+.export-pending .videography__title,
+.export-pending .videography__content > * { animation-play-state: paused; }
+
+.export__dial {
+  position: relative;
+  width: clamp(7rem, 22vw, 9rem);
+  aspect-ratio: 1;
+  margin-bottom: 1.1rem;
+}
+
+.export__ring {
+  width: 100%;
+  height: 100%;
+  rotate: -90deg;   /* fill from twelve o'clock */
+}
+
+.export__track,
+.export__fill {
+  fill: none;
+  stroke-width: 5;
+}
+
+.export__track { stroke: var(--hairline); }
+
+/* 339.29 is the circumference at r=54; main.js shortens the offset. */
+.export__fill {
+  stroke: var(--gold-solid);
+  stroke-linecap: round;
+  stroke-dasharray: 339.29;
+  stroke-dashoffset: 339.29;
+}
+
+.export__pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 4.5vw, 1.75rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.export__label {
+  margin: 0;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.export__hint {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 /* Reel player — a TikTok embed in a modal <dialog>. The reels are vertical,
    so the frame is 9:16 and sized by whichever of height or width runs out
    first. */
@@ -716,6 +800,49 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   height: 100%;
   border: 0;
 }
+
+/* Laid over the frame while .player--loading is set. Dark in both themes,
+   like the backdrop, and fades rather than cuts to the video. */
+.player__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border-radius: 20px;
+  background: #010101;
+  color: #fff;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.player--loading .player__loading {
+  opacity: 1;
+  visibility: visible;
+  transition: none;
+}
+
+.player__spinner {
+  width: 3rem;
+  height: 3rem;
+  animation: player-spin 0.9s linear infinite;
+}
+
+.player__spinner circle {
+  fill: none;
+  stroke: #c6983c;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 80 126;   /* a ~60% arc of the 125.7 circumference */
+}
+
+@keyframes player-spin { to { rotate: 360deg; } }
 
 .player__close {
   position: absolute;
