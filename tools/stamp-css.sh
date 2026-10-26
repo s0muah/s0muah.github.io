@@ -13,10 +13,15 @@ set -eu
 
 cd "$(dirname "$0")/.."
 
-hash=$(shasum -a 256 css/style.css | cut -c1-8)
+# shasum ships with macOS; Git for Windows' bash only has sha256sum.
+if command -v shasum >/dev/null 2>&1; then
+  hash=$(shasum -a 256 css/style.css | cut -c1-8)
+else
+  hash=$(sha256sum css/style.css | cut -c1-8)
+fi
 
 for f in *.html; do
-  perl -pi -e "s|href=\"css/style\.css(\?v=[0-9a-f]+)?\"|href=\"css/style.css?v=$hash\"|g" "$f"
+  perl -pi -e "s|href=\"css/style\.css(\?v=[0-9a-f]*)?\"|href=\"css/style.css?v=$hash\"|g" "$f"
 done
 
 echo "stamped css/style.css?v=$hash"

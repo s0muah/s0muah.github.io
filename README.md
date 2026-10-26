@@ -12,7 +12,7 @@ Built as a static site (plain HTML, CSS and vanilla JS) from the Figma source:
 index.html         hero / landing
 about.html         bio, education, achievements, journey
 projects.html      PATRIOT, Kromthrift, Automatic Relay, Mobile Phone Detector
-videography.html   mobile videography reel page
+videography.html   every TikTok reel, played in-page
 contact.html       contact details
 css/style.css      all styling; design tokens live in :root
 js/main.js         nav toggle + footer year
@@ -45,7 +45,9 @@ Push to `main`, then in the repository settings enable **Pages → Deploy from a
 branch → `main` / root**. `.nojekyll` is present so files and folders beginning
 with an underscore are served as-is.
 
-## Still to fill in
+## Adding a reel
 
-- `videography.html` — reels 2 and 3 currently point at the same TikTok
-  (`ZSVQm136c`); replace reel 3 with its own link.
+Copy one `<li>` in `videography.html` and change the video id in its `href`,
+`data-tiktok` and cover `src`. Save the cover as `assets/covers/<id>.jpg`,
+with its shorter side at 480px. TikTok's oEmbed response carries no
+thumbnail, so covers have to live here.
