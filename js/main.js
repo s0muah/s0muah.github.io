@@ -80,20 +80,27 @@
   var showTrack = function (track) {
     var playing = !!(track["@attr"] && track["@attr"].nowplaying === "true");
     var label = playing ? "Now playing" : "Last played";
-    var text = track.name + " — " + track.artist["#text"];
+    var artist = track.artist["#text"];
     var art = "";
     (track.image || []).forEach(function (img) {
       if (img.size === "medium") art = img["#text"];
     });
     if (art.indexOf(NP_NO_ART) !== -1) art = "";
 
+    // Last.fm carries no Spotify id, so link a Spotify search for the track;
+    // it lands on the song as the top result, in the app where installed.
+    var spotify = "https://open.spotify.com/search/" +
+      encodeURIComponent(track.name + " " + artist);
+
     Array.prototype.forEach.call(npWidgets, function (w) {
       w.hidden = false;
-      w.href = track.url;
+      w.href = spotify;
       w.classList.toggle("np--playing", playing);
-      w.setAttribute("aria-label", label + " on Spotify: " + text);
+      w.setAttribute("aria-label",
+        label + " on Spotify: " + track.name + " by " + artist);
       w.querySelector(".np__label").textContent = label;
-      w.querySelector(".np__track").textContent = text;
+      w.querySelector(".np__title").textContent = track.name;
+      w.querySelector(".np__artist").textContent = artist;
       var img = w.querySelector(".np__art");
       if (art) { img.src = art; img.hidden = false; } else { img.hidden = true; }
     });
