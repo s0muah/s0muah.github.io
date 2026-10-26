@@ -199,6 +199,13 @@ a { color: inherit; }
   max-width: var(--maxw);
   margin: 0 auto;
   overflow: hidden;
+  /* The portrait's height (74.2% of the hero, as below). The circle and the
+     wordmark are placed and sized from it, so the three move as one group:
+     sized from the width instead, they shrank on tall, narrow windows while
+     the bottom-anchored portrait did not, leaving a band of black above. On
+     a widescreen these work out to the original 50% / 47% / ~540px. */
+  --portrait-h: calc(max(100vh - 5.5rem, 520px) * 0.742);
+  --portrait-h: calc(max(100svh - 5.5rem, 520px) * 0.742);
 }
 
 .hero__stage {
@@ -210,17 +217,17 @@ a { color: inherit; }
 
 .hero__circle {
   position: absolute;
-  top: 50%;
+  top: calc(100% - var(--portrait-h) * 0.674);
   left: 50%;
   translate: -50% -50%;
-  width: min(582px, 38.5%, 60vh, 74vw);
+  width: min(582px, var(--portrait-h) * 0.9, 74vw);
   height: auto;
   aspect-ratio: 582 / 581;   /* exported Ellipse 1 geometry */
 }
 
 .hero__wordmark {
   position: absolute;
-  top: 47%;
+  top: calc(100% - var(--portrait-h) * 0.714);
   left: 0;
   right: 0;
   translate: 0 -50%;
@@ -1078,8 +1085,11 @@ a.contact__value:focus-visible {
   pointer-events: none;
 }
 
-/* On the home page, clear of the role tags in the bottom corners. */
-:root:has(.hero) { --np-bottom: clamp(5.5rem, 13vh, 8rem); }
+/* On the home page, clear of the role tags in the bottom corners: their
+   bottom offset (.hero__tags), plus two lines at the largest tag size
+   (1.25rem x 1.35), plus a gap. A vh guess here sat on top of them on
+   tablet-sized screens. */
+:root:has(.hero) { --np-bottom: calc(clamp(1rem, 4.6vh, 3.1rem) + 3.4rem + 0.75rem); }
 
 /* Out of the way of the full-screen phone menu. */
 .nav-open .np { opacity: 0; pointer-events: none; }
@@ -1313,7 +1323,14 @@ a.contact__value:focus-visible {
 
   .hero__portrait { height: min(80%, 72vh); }
 
-  .hero__wordmark { top: 24%; font-size: clamp(3rem, 18vw, 7rem); }
+  /* Hung off the circle rather than a fixed share of the height: at 24% it
+     only met the head on tall phones, and on wider tablet screens it floated
+     clear above both. Placed across the circle's upper half, it always runs
+     behind the head as on desktop. */
+  .hero__wordmark {
+    top: calc(42% - min(80vw, 52vh) * 0.16);
+    font-size: clamp(3rem, 18vw, 7rem);
+  }
 
   /* Keep the designed left/right corners rather than stacking all four tags
      into one column, which piled them on top of the figure. */
