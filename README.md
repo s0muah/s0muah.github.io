@@ -14,8 +14,9 @@ about.html         bio, education, achievements, journey
 projects.html      PATRIOT, Kromthrift, Automatic Relay, Mobile Phone Detector
 videography.html   every TikTok reel, played in-page
 contact.html       contact details
-css/style.css      all styling; design tokens live in :root
-js/main.js         nav toggle + footer year
+css/style.css      all styling; design tokens live in :root, light-mode
+                   overrides in :root[data-theme="light"]
+js/main.js         nav toggle, light/dark switch, footer year, reel player
 assets/            images and SVGs exported from Figma
 tools/stamp-css.sh cache-busts the stylesheet link; see below
 ```

@@ -1,4 +1,5 @@
-/* Small progressive-enhancement layer: nav toggle + footer year. */
+/* Small progressive-enhancement layer: nav toggle, theme switch, footer year,
+   reel player. */
 (function () {
   "use strict";
 
@@ -37,6 +38,31 @@
         collapse(true);
         toggle.focus();
       }
+    });
+  }
+
+  // Light/dark switch. Dark is the design and the default; a choice of light
+  // is saved and re-applied by the inline script in each page's <head>,
+  // which runs before first paint so the page never flashes dark first.
+  var root = document.documentElement;
+  var themeToggle = document.querySelector(".nav__theme");
+
+  function setTheme(theme, save) {
+    if (theme === "light") root.dataset.theme = "light";
+    else delete root.dataset.theme;
+    if (themeToggle) {
+      themeToggle.setAttribute("aria-label",
+        theme === "light" ? "Switch to dark mode" : "Switch to light mode");
+    }
+    if (save) {
+      try { localStorage.setItem("theme", theme); } catch (e) {}
+    }
+  }
+
+  if (themeToggle) {
+    setTheme(root.dataset.theme === "light" ? "light" : "dark", false);
+    themeToggle.addEventListener("click", function () {
+      setTheme(root.dataset.theme === "light" ? "dark" : "light", true);
     });
   }
 
