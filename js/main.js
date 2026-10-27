@@ -184,6 +184,104 @@
     }, { passive: true });
   }
 
+  // Scroll on to the next page. Once the visitor is at the very bottom,
+  // further downward wheel or swipe travel fills --pull on the .next link;
+  // at NEXT_PULL pixels it navigates. Scrolling back up, or pausing for
+  // NEXT_DECAY, lets it go. A plain click works too.
+  //
+  // Only a fresh gesture counts. A fast scroll down the page keeps sending
+  // wheel events (trackpad momentum) after it hits the bottom, which used
+  // to fill the bar in one fling. The pull is armed only once the wheel has
+  // been quiet for NEXT_GAP at the bottom, or a new touch starts there.
+  var next = document.querySelector(".next");
+
+  if (next) {
+    // Five wheel notches: Chrome sends 100-120px a notch, and 4 x 120 still
+    // falls short of 500 while 5 x 100 reaches it.
+    // NEXT_GAP only has to outlast the ~16ms spacing of momentum events;
+    // 250 made the visitor wait noticeably before the pull would start.
+    var NEXT_PULL = 500, NEXT_DECAY = 900, NEXT_FADE = 350, NEXT_GAP = 120;
+    var pull = 0, leaving = false, decayTimer = null, touchY = null;
+    var armed = false, lastWheel = 0;
+
+    var atBottom = function () {
+      return window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 2;
+    };
+
+    var go = function () {
+      if (leaving) return;
+      leaving = true;
+      root.classList.add("leaving");
+      setTimeout(function () { window.location.href = next.href; }, NEXT_FADE);
+    };
+
+    var setPull = function (px) {
+      pull = Math.max(0, Math.min(NEXT_PULL, px));
+      next.style.setProperty("--pull", (pull / NEXT_PULL).toFixed(3));
+      next.classList.toggle("next--pulling", pull > 0);
+      if (pull >= NEXT_PULL) go();
+    };
+
+    var decay = function () {
+      clearTimeout(decayTimer);
+      decayTimer = setTimeout(function () { if (!leaving) setPull(0); }, NEXT_DECAY);
+    };
+
+    // Any real movement of the page means the visitor is still travelling,
+    // not pushing past the end.
+    window.addEventListener("scroll", function () {
+      if (!atBottom()) armed = false;
+    }, { passive: true });
+
+    window.addEventListener("wheel", function (e) {
+      var now = Date.now();
+      var fresh = now - lastWheel > NEXT_GAP;
+      lastWheel = now;
+      if (e.deltaY > 0 && atBottom()) {
+        if (!armed) { armed = fresh; if (!armed) return; }
+        // deltaMode 1 is lines (Firefox); treat a line as ~40px.
+        setPull(pull + e.deltaY * (e.deltaMode === 1 ? 40 : 1));
+        decay();
+      } else if (e.deltaY < 0) {
+        armed = false;
+        setPull(0);
+      }
+    }, { passive: true });
+
+    window.addEventListener("touchstart", function (e) {
+      touchY = e.touches[0].clientY;
+      armed = atBottom();
+    }, { passive: true });
+
+    window.addEventListener("touchmove", function (e) {
+      if (touchY === null) return;
+      var y = e.touches[0].clientY;
+      var dy = touchY - y;   // positive: finger moving up, page going down
+      touchY = y;
+      if (dy > 0 && atBottom() && armed) { setPull(pull + dy * 1.2); decay(); }
+      else if (dy < 0) setPull(0);
+    }, { passive: true });
+
+    window.addEventListener("touchend", function () { touchY = null; decay(); }, { passive: true });
+
+    next.addEventListener("click", function (e) {
+      // Leave modified clicks (new tab, etc.) to the browser.
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      go();
+    });
+
+    // Coming back with the browser's Back button can restore this page from
+    // cache mid-fade; reset it.
+    window.addEventListener("pageshow", function (e) {
+      if (!e.persisted) return;
+      leaving = false;
+      root.classList.remove("leaving");
+      setPull(0);
+    });
+  }
+
   Array.prototype.forEach.call(document.querySelectorAll("[data-year]"), function (el) {
     el.textContent = String(new Date().getFullYear());
   });

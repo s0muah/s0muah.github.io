@@ -609,10 +609,11 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 
 /* Figma places the portrait in a 1307x956 window at (205, 26) and scales the
    source inside it; percentages below are that geometry against the frame.
-   The vertical ones are in vh so the portrait stays on the first screen
-   instead of stretching down the whole reel grid. */
+   Fixed, like the background behind it, so the portrait holds still while
+   the reel grid scrolls over it; the percentages now read against the
+   viewport, which is what the frame was anyway. */
 .videography__portrait-frame {
-  position: absolute;
+  position: fixed;
   left: 13.56%;
   top: 2.65vh;
   width: 86.44%;
@@ -911,6 +912,100 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
 
 .player__close:hover,
 .player__close:focus-visible { color: #c6983c; }
+
+/* --------------------------------------------------------------------------
+   Next page — the hand-off at the foot of every page. main.js sets --pull
+   (0 to 1) as the visitor keeps scrolling at the bottom; the gold bar fills
+   and the title leans forward until it reaches 1 and the page changes.
+   -------------------------------------------------------------------------- */
+
+.next {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(0.75rem, 2vh, 1.25rem);
+  min-height: 60vh;
+  min-height: 60svh;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(4rem, 10vh, 7rem) var(--gutter);
+  border-top: 1px solid var(--hairline);
+  color: var(--fg);
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.next__label {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  font-family: var(--display);
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  line-height: 1.5;
+  color: var(--gold-solid);
+}
+
+.next__step { font-family: var(--body); font-weight: 700; color: var(--muted); }
+
+.next__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 0.3em;
+  font-family: var(--display);
+  font-size: clamp(2.25rem, 7vw, 6.5rem);
+  line-height: 1.15;
+  translate: calc(var(--pull, 0) * 2.5rem) 0;
+  transition: color 0.3s ease, translate 0.2s ease-out;
+}
+
+.next__arrow {
+  width: 0.7em;
+  height: 0.7em;
+  flex: 0 0 auto;
+  transition: translate 0.3s ease;
+}
+
+.next:hover .next__title,
+.next:focus-visible .next__title,
+.next--pulling .next__title { color: var(--gold-solid); }
+
+.next:hover .next__arrow,
+.next:focus-visible .next__arrow { translate: 0.15em 0; }
+
+.next__hint {
+  font-family: var(--body);
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.next__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: var(--gold-solid);
+  transform-origin: left;
+  scale: var(--pull, 0) 1;
+  transition: scale 0.2s ease-out;
+}
+
+/* On the videography page the fixed backdrop and portrait carry on behind
+   the hand-off; the page's scrim keeps the title readable over them. */
+.videography + .next { background: var(--scrim); }
+
+/* Leaving: the page lifts and fades before the next one loads. */
+.leaving body {
+  opacity: 0;
+  translate: 0 -2rem;
+  transition: opacity 0.35s ease, translate 0.35s ease;
+}
+
+/* Same-site page changes crossfade where the browser supports it. */
+@view-transition { navigation: auto; }
 
 /* --------------------------------------------------------------------------
    Contact page
