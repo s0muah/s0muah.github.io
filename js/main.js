@@ -184,6 +184,78 @@
     }, { passive: true });
   }
 
+  // ID badge on the home page. It drops in on the CSS entrance, then turns
+  // by itself between the photo (BADGE_FRONT) and "What I do" (BADGE_BACK).
+  // A visitor's own flip restarts the count from that side. While a mouse
+  // is over it or focus is inside, it waits, so nothing turns away from
+  // under someone reading or about to click. The face turned away is inert,
+  // so neither tabbing nor a screen reader reaches what cannot be seen.
+  var badge = document.querySelector(".badge");
+  var BADGE_FRONT = 4200, BADGE_BACK = 6500, BADGE_WAIT = 1500;
+
+  if (badge) {
+    var badgeFront = badge.querySelector(".badge__face--front");
+    var badgeBack = badge.querySelector(".badge__face--back");
+    var badgeTimer = null;
+
+    var flipBadge = function (toBack, moveFocus) {
+      badge.classList.toggle("badge--flipped", toBack);
+      badgeFront.inert = toBack;
+      badgeBack.inert = !toBack;
+      // The control that was pressed has just gone inert; carry focus over
+      // rather than dropping it on <body>.
+      if (moveFocus) {
+        (toBack ? badgeBack.querySelector("a") : badgeFront.querySelector(".badge__flip")).focus();
+      }
+    };
+
+    var scheduleBadge = function (ms) {
+      clearTimeout(badgeTimer);
+      badgeTimer = setTimeout(function () {
+        if (badge.matches(":hover") || badge.contains(document.activeElement)) {
+          scheduleBadge(BADGE_WAIT);
+          return;
+        }
+        var toBack = !badge.classList.contains("badge--flipped");
+        flipBadge(toBack, false);
+        scheduleBadge(toBack ? BADGE_BACK : BADGE_FRONT);
+      }, ms);
+    };
+
+    badge.querySelector(".badge__flip").addEventListener("click", function () {
+      flipBadge(true, true);
+      scheduleBadge(BADGE_BACK);
+    });
+    badge.querySelector(".badge__back").addEventListener("click", function () {
+      flipBadge(false, true);
+      scheduleBadge(BADGE_FRONT);
+    });
+
+    scheduleBadge(BADGE_FRONT);
+  }
+
+  // Back to top. Shown once the visitor is a screen or so down the page, so
+  // it never appears on pages short enough not to need it. Smooth scrolling
+  // comes from scroll-behavior on <html>, which reduced motion turns off.
+  var totop = document.querySelector(".totop");
+
+  if (totop) {
+    totop.hidden = false;
+    var syncTotop = function () {
+      totop.classList.toggle("totop--shown", window.scrollY > window.innerHeight * 0.9);
+    };
+    syncTotop();
+    window.addEventListener("scroll", syncTotop, { passive: true });
+
+    totop.addEventListener("click", function () {
+      window.scrollTo(0, 0);
+      // Move focus up too, so keyboard and screen-reader users land at the
+      // start rather than on a button that has just faded away.
+      var brand = document.querySelector(".nav__brand");
+      if (brand) brand.focus({ preventScroll: true });
+    });
+  }
+
   // Scroll on to the next page. Once the visitor is at the very bottom,
   // further downward wheel or swipe travel fills --pull on the .next link;
   // at NEXT_PULL pixels it navigates. Scrolling back up, or pausing for

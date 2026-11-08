@@ -183,15 +183,12 @@ a { color: inherit; }
 
 /* --------------------------------------------------------------------------
    Homepage hero
-   In Figma the gold ellipse and the portrait share the frame's centre line,
-   the wordmark sits across the middle, and the portrait is flush to the
-   bottom edge — so the whole composition is a centred stack.
+   The ID badge hangs in the centre, with the role tags in the lower corners.
    -------------------------------------------------------------------------- */
 
 .hero {
   position: relative;
-  /* Definite height so the portrait's percentage height resolves. The svh
-     line wins where supported: on phones 100vh is the height with the URL
+  /* Definite height, which the badge is placed from. The svh line wins where supported: on phones 100vh is the height with the URL
      bar hidden, so reserving it pushes the tags below the fold. */
   height: calc(100vh - 5.5rem);
   height: calc(100svh - 5.5rem);
@@ -199,90 +196,284 @@ a { color: inherit; }
   max-width: var(--maxw);
   margin: 0 auto;
   overflow: hidden;
-  /* The portrait's height (74.2% of the hero, as below). The circle and the
-     wordmark are placed and sized from it, so the three move as one group:
-     sized from the width instead, they shrank on tall, narrow windows while
-     the bottom-anchored portrait did not, leaving a band of black above. On
-     a widescreen these work out to the original 50% / 47% / ~540px. */
-  --portrait-h: calc(max(100vh - 5.5rem, 520px) * 0.742);
-  --portrait-h: calc(max(100svh - 5.5rem, 520px) * 0.742);
+  /* The ID badge hangs from the top edge with its card centred at --badge-y
+     of the hero's height; its width keeps the card about 60% of that. */
+  --hero-h: max(100vh - 5.5rem, 520px);
+  --hero-h: max(100svh - 5.5rem, 520px);
+  --badge-w: min(var(--hero-h) * 0.41, 330px, 64vw);
+  --badge-y: 0.5;
 }
 
-.hero__stage {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-}
+/* --------------------------------------------------------------------------
+   ID badge: a lanyard card in the middle of the hero. The front
+   carries the photo and name; .badge--flipped (main.js) turns it over to
+   "What I do". Everything inside is sized in em off the card's width, so it
+   scales as one piece. Fixed dark in both themes, like the record.
+   -------------------------------------------------------------------------- */
 
-.hero__circle {
+.badge {
   position: absolute;
-  top: calc(100% - var(--portrait-h) * 0.674);
-  left: 50%;
-  translate: -50% -50%;
-  width: min(582px, var(--portrait-h) * 0.9, 74vw);
-  height: auto;
-  aspect-ratio: 582 / 581;   /* exported Ellipse 1 geometry */
-}
-
-.hero__wordmark {
-  position: absolute;
-  top: calc(100% - var(--portrait-h) * 0.714);
-  left: 0;
-  right: 0;
-  translate: 0 -50%;
-  margin: 0;
-  font-family: var(--display);
-  /* 230px against a 1512px frame */
-  font-size: clamp(3.5rem, 15.2vw, 14.4rem);
-  line-height: 1;
-  text-align: center;
-  color: var(--wordmark);
-  letter-spacing: -0.005em;
-  user-select: none;
-}
-
-.hero__portrait {
-  position: absolute;
-  bottom: 0;
+  top: 0;
   left: 50%;
   translate: -50% 0;
-  width: auto;
-  height: min(74.2%, 84vh);
-  max-width: 92vw;
-  object-fit: contain;
-  object-position: bottom center;
+  width: var(--badge-w);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: calc(var(--badge-w) / 18);
+  transform-origin: 50% 0;
 }
 
-/* Role tags pinned to the lower corners. */
-.hero__tags {
+.badge__strap {
+  width: 1.7em;
+  height: max(1.5rem, var(--hero-h) * var(--badge-y) - var(--badge-w) * 0.725 - 2.6em);
+  background:
+    linear-gradient(90deg, transparent 0.2em, rgba(0, 0, 0, 0.28) 0.2em 0.26em, transparent 0.26em calc(100% - 0.26em), rgba(0, 0, 0, 0.28) calc(100% - 0.26em) calc(100% - 0.2em), transparent calc(100% - 0.2em)),
+    linear-gradient(90deg, #8a6424, #c6983c 20% 80%, #8a6424);
+}
+
+/* Metal clip at the end of the strap, with the ring that runs into the
+   card's slot. */
+.badge__clip {
+  position: relative;
+  z-index: 2;
+  width: 2.5em;
+  height: 1.9em;
+  border-radius: 0.35em 0.35em 0.6em 0.6em;
+  background: linear-gradient(#e2e0dc, #9a9893 55%, #6f6d69);
+  box-shadow: 0 0.15em 0.4em rgba(0, 0, 0, 0.45);
+}
+
+.badge__clip::after {
+  content: "";
   position: absolute;
-  bottom: clamp(1rem, 4.6vh, 3.1rem);
-  left: 0;
-  right: 0;
+  top: 100%;
+  left: 50%;
+  translate: -50% -0.35em;
+  width: 1.1em;
+  height: 1.8em;
+  border: 0.22em solid #b5b3ae;
+  border-radius: 0.6em;
+}
+
+.badge__card {
+  width: 100%;
+  aspect-ratio: 1 / 1.45;
+  margin-top: 0.4em;
+  perspective: 1400px;
+}
+
+.badge__inner {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.95s cubic-bezier(0.5, 0.05, 0.2, 1);
+}
+
+.badge--flipped .badge__inner { transform: rotateY(180deg); }
+
+.badge__face {
+  position: absolute;
+  inset: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding: 0 var(--gutter);
+  flex-direction: column;
+  padding: 1.7em 1.2em 1.1em;
+  border: 1px solid rgba(198, 152, 60, 0.45);
+  border-radius: 1.1em;
+  background: linear-gradient(160deg, #1d1a16, #0b0a09 62%);
+  box-shadow: 0 1.6em 3.2em rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-family: var(--body);
+  overflow: hidden;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* A sheen across the laminate. */
+.badge__face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.06) 48%, transparent 58%);
   pointer-events: none;
 }
 
-.hero__tag-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  pointer-events: auto;
+.badge__face--back { transform: rotateY(180deg); }
+
+.badge__slot {
+  position: absolute;
+  top: 0.65em;
+  left: 50%;
+  translate: -50% 0;
+  width: 3.2em;
+  height: 0.55em;
+  border-radius: 1em;
+  background: #000;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.hero__tag-group--right { text-align: right; }
+.badge__photo {
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 0.7em;
+  overflow: hidden;
+  background: linear-gradient(#27231c, #14120f);
+}
 
-.hero__tag {
+.badge__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+
+.badge__first {
+  margin: 0.9em 0 0;
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.badge__name {
+  margin: 0.15em 0 0;
   font-family: var(--display);
-  font-size: clamp(0.58rem, 1.32vw, 1.25rem);
-  line-height: 1.35;
+  font-size: 2.15em;
+  line-height: 1.3;
+  color: #c6983c;
+}
+
+.badge__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.7em;
+}
+
+.badge__meta {
+  font-size: 0.62em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.badge__code {
+  width: 5.5em;
+  height: 1.6em;
+  background: repeating-linear-gradient(90deg,
+    rgba(255, 255, 255, 0.7) 0 1px, transparent 1px 3px,
+    rgba(255, 255, 255, 0.7) 3px 5px, transparent 5px 6px,
+    rgba(255, 255, 255, 0.7) 6px 7px, transparent 7px 10px);
+  opacity: 0.6;
+}
+
+/* The whole front is the flip control. */
+.badge__flip {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.badge__heading {
+  margin: 0.7em 0 0.9em;
+  font-family: var(--display);
+  font-size: 0.95em;
+  line-height: 1.4;
+  color: #c6983c;
+}
+
+.badge__roles {
+  flex: 1 1 auto;
+  display: grid;
+  align-content: start;
+  gap: 0.55em;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.badge__roles a {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.65em 0.75em;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.7em;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  text-decoration: none;
+  transition: border-color 0.22s ease, background 0.22s ease;
+}
+
+.badge__roles a:hover,
+.badge__roles a:focus-visible {
+  border-color: #c6983c;
+  background: rgba(198, 152, 60, 0.1);
+}
+
+.badge__num {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 3em;
+  height: 3em;
+  border-radius: 0.7em;
+  background: rgba(198, 152, 60, 0.16);
+  color: #c6983c;
+  font-size: 0.7em;
+  font-weight: 700;
+}
+
+.badge__roles b { display: block; font-size: 0.82em; line-height: 1.3; }
+
+.badge__roles small {
+  display: block;
+  font-size: 0.62em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.badge__back {
+  padding: 0.5em 0.95em;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.8);
+  font: inherit;
+  font-size: 0.62em;
+  cursor: pointer;
+  transition: border-color 0.22s ease, color 0.22s ease;
+}
+
+.badge__back:hover,
+.badge__back:focus-visible { border-color: #c6983c; color: #c6983c; }
+
+/* Role words set large around the badge: two level with its upper half,
+   two with its lower half, each held to the margin on its own side. Their
+   size comes off the width so the longest line (VIDEOGRAPHER) always clears
+   the card. */
+.hero__tag {
+  position: absolute;
+  top: 30%;
+  left: var(--gutter);
+  translate: 0 -50%;
+  font-family: var(--display);
+  font-size: clamp(1rem, 2.15vw, 2.4rem);
+  line-height: 1.3;
   text-decoration: none;
   white-space: nowrap;
 }
+
+.hero__tag--tr,
+.hero__tag--br { left: auto; right: var(--gutter); text-align: right; }
+
+.hero__tag--bl,
+.hero__tag--br { top: 68%; }
 
 a.hero__tag { transition: color 0.22s ease; }
 a.hero__tag:hover,
@@ -299,56 +490,51 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
    restate, or accidentally clobber, the layout's own offsets.
    -------------------------------------------------------------------------- */
 
-@keyframes hero-bloom {
-  from { opacity: 0; transform: scale(0.68); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(1.6rem); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes hero-step-in {
-  from { opacity: 0; transform: translateY(3rem) scale(0.985); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+/* The badge falls in from above the hero's top edge and bounces on its
+   strap, then swings to rest about the top of the strap. Drop and swing
+   animate different properties, so the two overlap cleanly. */
+@keyframes badge-drop {
+  0%   { transform: translateY(-105%); }
+  60%  { transform: translateY(2.5%); }
+  80%  { transform: translateY(-1%); }
+  100% { transform: translateY(0); }
 }
 
-.hero__circle,
-.hero__wordmark,
-.hero__portrait,
-.hero__tag-group {
+@keyframes badge-swing {
+  0%, 100% { rotate: 0deg; }
+  25% { rotate: 3.5deg; }
+  50% { rotate: -2deg; }
+  75% { rotate: 0.8deg; }
+}
+
+.hero__tag {
   /* `both` holds the opening frame before the delay elapses, so nothing
      flashes at full opacity first. */
   animation-fill-mode: both;
   animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-.hero__circle {
-  animation-name: hero-bloom;
-  animation-duration: 1.15s;
-  animation-delay: 0.08s;
+.badge {
+  animation:
+    badge-drop 1.1s cubic-bezier(0.3, 0.7, 0.3, 1) 0.42s both,
+    badge-swing 1.9s ease-in-out 1.3s both;
 }
 
-.hero__wordmark {
-  animation-name: rise-in;
-  animation-duration: 1.05s;
-  animation-delay: 0.26s;
-}
-
-.hero__portrait {
-  animation-name: hero-step-in;
-  animation-duration: 1.25s;
-  animation-delay: 0.42s;
-}
-
-.hero__tag-group {
+/* The words follow the badge in, one after another round the card. */
+.hero__tag {
   animation-name: rise-in;
   animation-duration: 0.8s;
-  animation-delay: 0.95s;
+  animation-delay: 1.1s;
 }
 
-.hero__tag-group--right { animation-delay: 1.08s; }
+.hero__tag--tr { animation-delay: 1.22s; }
+.hero__tag--bl { animation-delay: 1.34s; }
+.hero__tag--br { animation-delay: 1.46s; }
 
 /* --------------------------------------------------------------------------
    Generic page scaffolding for the interior pages
@@ -1180,11 +1366,12 @@ a.contact__value:focus-visible {
   pointer-events: none;
 }
 
-/* On the home page, clear of the role tags in the bottom corners: their
-   bottom offset (.hero__tags), plus two lines at the largest tag size
-   (1.25rem x 1.35), plus a gap. A vh guess here sat on top of them on
-   tablet-sized screens. */
-:root:has(.hero) { --np-bottom: calc(clamp(1rem, 4.6vh, 3.1rem) + 3.4rem + 0.75rem); }
+/* On a phone's home page, clear of the role words in the bottom corners:
+   their bottom offset (.hero__tag--bl), plus two lines at the largest size
+   there (0.95rem x 1.3), plus a gap. */
+@media (max-width: 900px) {
+  :root:has(.hero) { --np-bottom: calc(clamp(1rem, 4.6vh, 3.1rem) + 2.5rem + 0.75rem); }
+}
 
 /* Out of the way of the full-screen phone menu. */
 .nav-open .np { opacity: 0; pointer-events: none; }
@@ -1337,6 +1524,52 @@ a.contact__value:focus-visible {
 @keyframes np-bar { from { scale: 1 0.3; } to { scale: 1 1; } }
 @keyframes np-spin { to { rotate: 360deg; } }
 
+/* --------------------------------------------------------------------------
+   Back to top — bottom-left, opposite the mini-player and level with it.
+   Hidden until main.js sees the visitor a screen or more down the page.
+   -------------------------------------------------------------------------- */
+.totop {
+  position: fixed;
+  left: var(--gutter);
+  bottom: var(--np-bottom, clamp(1rem, 3vh, 1.75rem));
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  /* The mini-player's resting size: its record plus padding and border. */
+  width: calc(2.9rem + 0.8rem + 2px);
+  height: calc(2.9rem + 0.8rem + 2px);
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--np-bg);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  color: var(--gold-solid);
+  cursor: pointer;
+  opacity: 0;
+  translate: 0 calc(100% + 2.5rem);
+  pointer-events: none;
+  transition: border-color 0.25s ease, color 0.25s ease,
+    translate 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease;
+}
+
+.totop--shown {
+  opacity: 1;
+  translate: 0 0;
+  pointer-events: auto;
+}
+
+.totop:hover,
+.totop:focus-visible { border-color: var(--gold-solid); }
+
+.totop svg { width: 1.3rem; height: 1.3rem; transition: translate 0.25s ease; }
+.totop:hover svg { translate: 0 -2px; }
+
+.totop[hidden] { display: none; }
+
+.nav-open .totop { opacity: 0; pointer-events: none; }
+
 .footer a { text-decoration: none; border-bottom: 1px solid transparent; }
 .footer a:hover, .footer a:focus-visible { color: var(--fg); border-bottom-color: var(--gold-solid); }
 
@@ -1412,41 +1645,24 @@ a.contact__value:focus-visible {
     min-height: 460px;
   }
 
-  /* Scaled up from the old 70vw/68%: at phone sizes the composition was
-     sitting in the lower two thirds with a dead band under the nav. */
-  .hero__circle { top: 42%; width: min(80vw, 52vh); }
-
-  .hero__portrait { height: min(80%, 72vh); }
-
-  /* Hung off the circle rather than a fixed share of the height: at 24% it
-     only met the head on tall phones, and on wider tablet screens it floated
-     clear above both. Placed across the circle's upper half, it always runs
-     behind the head as on desktop. */
-  .hero__wordmark {
-    top: calc(42% - min(80vw, 52vh) * 0.16);
-    font-size: clamp(3rem, 18vw, 7rem);
+  /* Card centred a little above the middle, clear of the tags. */
+  .hero {
+    --hero-h: max(100vh - 4.5rem, 460px);
+    --hero-h: max(100svh - 4.5rem, 460px);
+    --badge-w: min(var(--hero-h) * 0.37, 66vw, 300px);
+    --badge-y: 0.45;
   }
 
-  /* Keep the designed left/right corners rather than stacking all four tags
-     into one column, which piled them on top of the figure. */
-  .hero__tags {
-    align-items: flex-end;
-    gap: 1rem;
-    isolation: isolate;   /* so the scrim below stays above the portrait */
+  /* No room beside the card here, so the upper pair moves up either side
+     of the strap and the lower pair drops to the bottom corners. */
+  .hero__tag {
+    top: 1.25rem;
+    translate: none;
+    font-size: clamp(0.7rem, 3.5vw, 0.95rem);
   }
 
-  .hero__tag { font-size: clamp(0.6rem, 2.9vw, 0.8rem); }
-
-  /* The tags now sit over the portrait's lower half; a bottom fade keeps
-     white text off cream trousers readable without a hard bar. */
-  .hero__tags::before {
-    content: "";
-    position: absolute;
-    inset: -3rem 0 -4rem;
-    background: linear-gradient(to top, var(--fade), var(--fade-clear));
-    z-index: -1;
-    pointer-events: none;
-  }
+  .hero__tag--bl,
+  .hero__tag--br { top: auto; bottom: clamp(1rem, 4.6vh, 3.1rem); }
 
   /* Single column. The heading leads so the page reads before it is scrolled;
      the portrait follows it rather than pushing it below the fold. */
