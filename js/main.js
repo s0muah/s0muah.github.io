@@ -222,11 +222,11 @@
       }, ms);
     };
 
-    badge.querySelector(".badge__flip").addEventListener("click", function () {
+    badgeFront.querySelector(".badge__flip").addEventListener("click", function () {
       flipBadge(true, true);
       scheduleBadge(BADGE_BACK);
     });
-    badge.querySelector(".badge__back").addEventListener("click", function () {
+    badgeBack.querySelector(".badge__flip").addEventListener("click", function () {
       flipBadge(false, true);
       scheduleBadge(BADGE_FRONT);
     });
