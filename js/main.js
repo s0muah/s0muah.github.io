@@ -80,8 +80,6 @@
   var NP_URL = "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks" +
     "&user=s0muah&api_key=ee5ebc689edbf0647492066446e11794&format=json&limit=1";
   var NP_POLL = 30000, NP_PEEK = 4500, NP_TAP_PEEK = 6000, NP_LINGER = 700;
-  // Last.fm's grey star, served when a track has no artwork.
-  var NP_NO_ART = "2a96cbd8b46e442fc41c2b86b821562f";
   var npKey = "", npTimer = null;
 
   var npOpen = function (forMs) {
@@ -100,11 +98,6 @@
     var playing = !!(track["@attr"] && track["@attr"].nowplaying === "true");
     var label = playing ? "Now playing" : "Last played";
     var artist = track.artist["#text"];
-    var art = "";
-    (track.image || []).forEach(function (img) {
-      if (img.size === "medium") art = img["#text"];
-    });
-    if (art.indexOf(NP_NO_ART) !== -1) art = "";
 
     // Last.fm carries no Spotify id, so link a Spotify search for the track;
     // it lands on the song as the top result, in the app where installed.
@@ -119,8 +112,6 @@
     np.querySelector(".np__label").textContent = label;
     np.querySelector(".np__title").textContent = track.name;
     np.querySelector(".np__artist").textContent = artist;
-    var img = np.querySelector(".np__art");
-    if (art) { img.src = art; img.hidden = false; } else { img.hidden = true; }
 
     // Peek on first show and whenever the track (or whether it is playing)
     // changes. Behind the videography intro, wait for it to clear first.
