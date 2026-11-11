@@ -412,6 +412,34 @@
     exporter.addEventListener("click", function () { finish(0); });
   }
 
+  // Selected works: the arrows step the strip one card at a time, and each
+  // greys out at its end. Swiping and trackpads scroll it directly.
+  var strip = document.querySelector(".reels--featured");
+
+  if (strip) {
+    var arrows = document.querySelectorAll(".works__arrow");
+
+    var updateArrows = function () {
+      var max = strip.scrollWidth - strip.clientWidth - 2;
+      Array.prototype.forEach.call(arrows, function (btn) {
+        btn.disabled = btn.dataset.dir === "-1" ? strip.scrollLeft <= 2 : strip.scrollLeft >= max;
+      });
+    };
+
+    Array.prototype.forEach.call(arrows, function (btn) {
+      btn.addEventListener("click", function () {
+        var card = strip.querySelector("li");
+        var gap = parseFloat(getComputedStyle(strip).columnGap) || 0;
+        var step = card ? card.offsetWidth + gap : strip.clientWidth;
+        strip.scrollBy({ left: step * Number(btn.dataset.dir) });
+      });
+    });
+
+    strip.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    updateArrows();
+  }
+
   // Reels play in a dialog instead of leaving for TikTok. Without <dialog>
   // support (or without this script) the links still open TikTok as before.
   var player = document.querySelector(".player");
