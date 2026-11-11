@@ -197,11 +197,12 @@ a { color: inherit; }
   margin: 0 auto;
   overflow: hidden;
   /* The ID badge hangs from the top edge with its card centred at --badge-y
-     of the hero's height; its width keeps the card about 60% of that. */
+     of the hero's height; its width keeps the card about 75% of that.
+     The 40vw cap keeps it clear of the role words on narrower windows. */
   --hero-h: max(100vh - 5.5rem, 520px);
   --hero-h: max(100svh - 5.5rem, 520px);
-  --badge-w: min(var(--hero-h) * 0.41, 330px, 64vw);
-  --badge-y: 0.5;
+  --badge-w: min(var(--hero-h) * 0.52, 440px, 40vw);
+  --badge-y: 0.53;
 }
 
 /* --------------------------------------------------------------------------
