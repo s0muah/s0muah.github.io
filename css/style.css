@@ -2083,53 +2083,28 @@ a.contact__value:focus-visible {
 
   .nav__brand, .nav__link { font-size: 0.8rem; }
 
-  /* On a phone there is no room for words beside the card: squeezed into
-     the corners they ran into the strap and floated far below the card. So
-     the hero becomes a plain column instead - the badge on a short strap,
-     then the four roles in a two-by-two grid under it. Only below 640px:
-     a laptop window at half width keeps the roles beside the card. */
+  /* On a phone the hero is just the card: no room for the role words
+     beside it, and stacked under it they pushed the card small. The roles
+     are still on the card's back. Below 640px only: a laptop window at half
+     width keeps the words beside the card.
+     The card is as big as the first screen allows - the space under the
+     nav, less room for the clip and for the floating player at the
+     bottom - and the strap takes up the rest, so the card hangs low with
+     its bottom edge just clear of the player. */
   @media (max-width: 640px) {
   .hero {
-    height: auto;
+    --hero-h: calc(100vh - 5.5rem);
+    --hero-h: calc(100svh - 5.5rem);
+    --badge-w: min(84vw, 360px, max(56vw, (var(--hero-h) - 9rem) / 1.45));
+    height: var(--hero-h);
     min-height: 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 1rem;
-    row-gap: 1rem;
-    align-items: start;
-    /* The bottom padding keeps the last row clear of the floating player. */
-    padding: 0 var(--gutter) 6.5rem;
-    /* Small enough that the card and both rows of roles fit the first
-       screen above the player (about 25rem of nav, strap, roles and player
-       besides the card), but never so small the card stops reading. */
-    --badge-w: min(76vw, 340px, max(46vw, (100vh - 25rem) / 1.45));
-    --badge-w: min(76vw, 340px, max(46vw, (100svh - 25rem) / 1.45));
   }
 
-  .badge {
-    position: relative;
-    top: auto;
-    left: auto;
-    translate: none;
-    grid-column: 1 / -1;
-    justify-self: center;
-    margin-bottom: 0.5rem;
+  .badge__strap {
+    height: max(2rem, var(--hero-h) - 5rem - var(--badge-w) * 1.45 - 2.6em);
   }
 
-  .badge__strap { height: clamp(2rem, 6vh, 3.5rem); }
-
-  .hero__tag {
-    position: static;
-    translate: none;
-    font-size: clamp(0.78rem, 3.7vw, 1rem);
-    line-height: 1.45;
-    white-space: normal;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--hairline);
-  }
-
-  .hero__tag--tr,
-  .hero__tag--br { text-align: right; }
+  .hero__tag { display: none; }
   }
 
   /* Single column. The heading leads so the page reads before it is scrolled;

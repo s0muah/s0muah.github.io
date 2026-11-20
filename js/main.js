@@ -522,7 +522,9 @@
     if (figBadge) {
       figSteps.push({ el: figBadge, name: "ID badge", icon: "comp", type: "Component", fill: "#C6983C" });
     }
+    // Phones hide the role words; only place the ones that are shown.
     Array.prototype.forEach.call(figFrame.querySelectorAll(".hero__tag"), function (tag) {
+      if (getComputedStyle(tag).display === "none") return;
       figSteps.push({ el: tag, name: figText(tag), icon: "text", type: "Text", text: true, quick: true });
     });
 
