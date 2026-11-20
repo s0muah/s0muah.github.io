@@ -1064,6 +1064,397 @@ a.hero__tag:focus-visible { color: var(--gold-solid); }
   color: var(--muted);
 }
 
+/* --------------------------------------------------------------------------
+   "Built in Figma" intro on the home page. While <html> has .figma-pending
+   (set in the page's <head>), the page (.fig-frame) is scaled onto a grey
+   canvas between editor panels; main.js sets --fx/--fy/--fs, then moves the
+   cursor, draws the frame and places each layer (.fig-placed). Presenting
+   adds .fig-present: the panels slide away and the frame zooms to full size.
+   The editor chrome keeps Figma's own dark greys and selection blue, so it
+   reads as the tool; only the cursor and avatar carry the site's gold.
+   -------------------------------------------------------------------------- */
+
+.fig { display: none; }
+
+.figma-pending,
+.figma-pending body { overflow: hidden; background: #1e1e1e; }
+
+.figma-pending .fig {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: block;
+  font-family: var(--body);
+  font-size: 11px;
+  line-height: 16px;
+  color: #fff;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.figma-pending .fig-frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--fw, 100vw);
+  height: var(--fh, 100vh);
+  overflow: hidden;
+  background: var(--bg);
+  transform-origin: 0 0;
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) scale(var(--fs, 1));
+  /* Hidden until the cursor drags it out from its top-left corner. */
+  clip-path: inset(0 100% 100% 0);
+  transition:
+    transform 0.75s cubic-bezier(0.65, 0, 0.25, 1),
+    clip-path 0.7s cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+.figma-pending .fig-frame.fig-drawn { clip-path: inset(0); }
+
+/* Layers wait, unseen and unanimated, until the cursor places them. */
+.figma-pending .fig-frame .nav,
+.figma-pending .badge,
+.figma-pending .hero__tag { visibility: hidden; animation-play-state: paused; }
+
+.figma-pending .fig-frame .fig-placed { visibility: visible; animation-play-state: running; }
+
+/* The canvas between the panels is see-through; keep the floating corner
+   controls from showing on it. */
+.figma-pending .np,
+.figma-pending .totop { visibility: hidden; }
+
+/* Placed, each plays its own entrance at once. Not tied to .figma-pending:
+   changing the delays when that class goes would jump any entrance still
+   running back to an earlier frame. */
+.badge.fig-placed { animation-delay: 0s, 0.9s; }
+.hero__tag.fig-placed { animation-delay: 0s; }
+.nav.fig-placed { animation: fig-pop 0.35s ease both; }
+
+@keyframes fig-pop {
+  from { opacity: 0; transform: scale(0.98); }
+}
+
+.fig__left,
+.fig__right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  background: #2c2c2c;
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.fig__left { left: 0; border-right: 1px solid #383838; }
+.fig__right { right: 0; border-left: 1px solid #383838; }
+
+.fig__top { display: none; }
+
+.fig__file,
+.fig__share {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #383838;
+}
+
+.fig__file b { display: block; font-size: 12px; }
+.fig__file small,
+.fig__top small { color: #9a9a9a; font-size: 11px; }
+
+.fig__logo,
+.fig__avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  background: #c6983c;
+  color: #010101;
+  font-weight: 700;
+}
+
+.fig__logo { border-radius: 6px; font-family: var(--display); font-size: 10px; }
+.fig__avatar { border-radius: 50%; font-size: 9px; }
+
+.fig__play {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border-radius: 5px;
+  transition: background-color 0.15s ease;
+}
+
+.fig__play svg { width: 13px; height: 13px; }
+.fig__play.is-on { background: #4a4a4a; }
+
+.fig__sharebtn {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 5px;
+  background: #0d99ff;
+  font-weight: 700;
+}
+
+.fig__tabs {
+  display: flex;
+  gap: 14px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #383838;
+  color: #9a9a9a;
+  font-weight: 700;
+}
+
+.fig__tabs .is-on { color: #fff; }
+
+.fig__head,
+.fig__ptype {
+  margin: 0;
+  padding: 12px 12px 6px;
+  font-weight: 700;
+}
+
+.fig__pages,
+.fig__layers {
+  list-style: none;
+  margin: 0;
+  padding: 0 4px;
+}
+
+.fig__pages li,
+.fig__layer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.fig__pages li { color: #b3b3b3; }
+.fig__pages .is-on { color: #fff; font-weight: 700; }
+
+.fig__layer { animation: fig-row 0.25s ease both; }
+.fig__layer--child { padding-left: 26px; }
+.fig__layer.is-on { background: rgba(13, 153, 255, 0.28); }
+.fig__layer svg { flex: none; width: 12px; height: 12px; color: #b3b3b3; }
+.fig__layer--comp { color: #c9a8ff; }
+.fig__layer--comp svg { color: #9747ff; }
+
+@keyframes fig-row {
+  from { opacity: 0; transform: translateX(-6px); }
+}
+
+.fig__props > * { animation: fig-fade 0.2s ease both; }
+
+@keyframes fig-fade { from { opacity: 0; } }
+
+.fig__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.fig__field,
+.fig__fill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 5px;
+  background: #383838;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.fig__field em { font-style: normal; color: #9a9a9a; }
+.fig__field--wide { margin: 0 12px 8px; }
+.fig__fill { margin: 0 12px; }
+
+.fig__fill i {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.fig__fill span { margin-left: auto; color: #9a9a9a; }
+
+/* UI3-style floating toolbar, centred under the canvas. */
+.fig__toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid #383838;
+  border-radius: 12px;
+  background: #2c2c2c;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s ease;
+}
+
+.fig__tool {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.fig__tool svg { width: 18px; height: 18px; }
+.fig__tool.is-on { background: #0d99ff; }
+
+.fig__div { width: 1px; height: 20px; margin: 0 4px; background: #444; }
+
+.fig__zoom {
+  padding: 0 8px;
+  color: #b3b3b3;
+  font-variant-numeric: tabular-nums;
+}
+
+.fig__skip {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  translate: -50% 0;
+  margin: 0;
+  color: #8a8a8a;
+  white-space: nowrap;
+}
+
+.fig__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #b3b3b3;
+  white-space: nowrap;
+}
+
+/* Selection box, with corner handles and the W x H tag under it. */
+.fig__sel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border: 1px solid #0d99ff;
+  opacity: 0;
+  transition-property: transform, width, height;
+  transition-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+.fig__sel.is-on { opacity: 1; }
+
+.fig__sel i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #0d99ff;
+  background: #fff;
+}
+
+.fig__sel i:nth-child(1) { left: -4px; top: -4px; }
+.fig__sel i:nth-child(2) { right: -4px; top: -4px; }
+.fig__sel i:nth-child(3) { left: -4px; bottom: -4px; }
+.fig__sel i:nth-child(4) { right: -4px; bottom: -4px; }
+
+.fig__size {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: #0d99ff;
+  font-size: 10px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Multiplayer cursor: its tip is the svg's (2, 2), placed by main.js. */
+.fig__cursor {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.45, 0, 0.25, 1);
+  will-change: transform;
+}
+
+.fig__cursor svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  transform-origin: 2px 2px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+.fig__cursor span {
+  position: absolute;
+  top: 16px;
+  left: 14px;
+  padding: 1px 6px;
+  border-radius: 3px 9px 9px 9px;
+  background: #c6983c;
+  color: #010101;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.fig__cursor.is-click svg { animation: fig-click 0.2s ease; }
+
+@keyframes fig-click { 50% { transform: scale(0.78); } }
+
+/* Present: the editor clears away and the frame zooms up to the screen. */
+.fig-present .fig__left { transform: translateX(-100%); }
+.fig-present .fig__right { transform: translateX(100%); }
+.fig-present .fig__top { transform: translateY(-100%); }
+.fig-present .fig__toolbar { transform: translateY(160%); opacity: 0; }
+
+.fig-present .fig__sel,
+.fig-present .fig__cursor,
+.fig-present .fig__label,
+.fig-present .fig__skip { visibility: hidden; }
+
+@media (max-width: 900px) {
+  .fig__left,
+  .fig__right { display: none; }
+
+  .fig__top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-bottom: 1px solid #383838;
+    background: #2c2c2c;
+    transition: transform 0.5s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .fig__top b { font-size: 12px; }
+  .fig__skip { top: auto; bottom: 64px; }
+}
+
 /* Reel player — a TikTok embed in a modal <dialog>. The reels are vertical,
    so the frame is 9:16 and sized by whichever of height or width runs out
    first. */
@@ -1690,12 +2081,15 @@ a.contact__value:focus-visible {
 
   .nav__menu[data-collapsed="true"] { display: none; }
 
-  .nav__brand, .nav__link, .hero__tag { font-size: 0.8rem; }
+  .nav__brand, .nav__link { font-size: 0.8rem; }
 
   /* On a phone there is no room for words beside the card: squeezed into
      the corners they ran into the strap and floated far below the card. So
      the hero becomes a plain column instead - the badge on a short strap,
-     then the four roles in a two-by-two grid under it. */
+     then the four roles in a two-by-two grid under it. Only below 640px:
+     a laptop window at half width keeps the roles beside the card, which
+     leaves room for a much bigger card than the column can fit. */
+  @media (max-width: 640px) {
   .hero {
     height: auto;
     min-height: 0;
@@ -1708,9 +2102,12 @@ a.contact__value:focus-visible {
     padding: 0 var(--gutter) 6.5rem;
     /* Small enough that the card and both rows of roles fit the first
        screen above the player (about 25rem of nav, strap, roles and player
-       besides the card), but never so small the card stops reading. */
-    --badge-w: min(76vw, 340px, max(46vw, (100vh - 25rem) / 1.45));
-    --badge-w: min(76vw, 340px, max(46vw, (100svh - 25rem) / 1.45));
+       besides the card), but never so small the card stops reading. The
+       floor is 46vw on a phone but stops at 13rem: on a short, wide-ish
+       window (a laptop browser not at full width) 46vw made the card too
+       tall to leave room for the roles. */
+    --badge-w: min(76vw, 340px, max(min(46vw, 13rem), (100vh - 25rem) / 1.45));
+    --badge-w: min(76vw, 340px, max(min(46vw, 13rem), (100svh - 25rem) / 1.45));
   }
 
   .badge {
@@ -1737,6 +2134,7 @@ a.contact__value:focus-visible {
 
   .hero__tag--tr,
   .hero__tag--br { text-align: right; }
+  }
 
   /* Single column. The heading leads so the page reads before it is scrolled;
      the portrait follows it rather than pushing it below the fold. */

@@ -114,10 +114,12 @@
     np.querySelector(".np__artist").textContent = artist;
 
     // Peek on first show and whenever the track (or whether it is playing)
-    // changes. Behind the videography intro, wait for it to clear first.
+    // changes. Behind the videography or home intro, wait for it to clear.
     var key = track.name + "\n" + artist + "\n" + playing;
     if (key !== npKey) {
-      var delay = npKey === "" && root.classList.contains("export-pending") ? 5000 : 300;
+      var delay = npKey !== "" ? 300 :
+        root.classList.contains("export-pending") ? 5000 :
+        root.classList.contains("figma-pending") ? 7000 : 300;
       npKey = key;
       setTimeout(function () { npOpen(NP_PEEK); }, delay);
     }
@@ -222,7 +224,12 @@
       scheduleBadge(BADGE_FRONT);
     });
 
-    scheduleBadge(BADGE_FRONT);
+    // Behind the Figma intro, start counting only once it has gone.
+    if (root.classList.contains("figma-pending")) {
+      document.addEventListener("figma-done", function () { scheduleBadge(BADGE_FRONT); }, { once: true });
+    } else {
+      scheduleBadge(BADGE_FRONT);
+    }
   }
 
   // Back to top. Shown once the visitor is a screen or so down the page, so
@@ -297,7 +304,12 @@
       if (!atBottom()) armed = false;
     }, { passive: true });
 
+    // During the Figma intro the page is pinned to one screen, so it always
+    // looks to be "at the bottom"; a wheel there skips the intro instead.
+    var introOn = function () { return root.classList.contains("figma-pending"); };
+
     window.addEventListener("wheel", function (e) {
+      if (introOn()) return;
       var now = Date.now();
       var fresh = now - lastWheel > NEXT_GAP;
       lastWheel = now;
@@ -314,7 +326,7 @@
 
     window.addEventListener("touchstart", function (e) {
       touchY = e.touches[0].clientY;
-      armed = atBottom();
+      armed = !introOn() && atBottom();
     }, { passive: true });
 
     window.addEventListener("touchmove", function (e) {
@@ -348,6 +360,274 @@
   Array.prototype.forEach.call(document.querySelectorAll("[data-year]"), function (el) {
     el.textContent = String(new Date().getFullYear());
   });
+
+  // "Built in Figma" intro on the home page. The page (.fig-frame) sits
+  // scaled down on the canvas; Jeffrey's cursor picks the frame tool, drags
+  // the frame out, then places each layer in turn - selecting it, adding it
+  // to the layers panel and showing its real size and styles - and finally
+  // presses Present, which clears the editor away. A click, key, wheel or
+  // width change skips straight to Present.
+  var fig = document.querySelector(".fig");
+  var figFrame = document.querySelector(".fig-frame");
+
+  if (fig && figFrame && root.classList.contains("figma-pending")) {
+    // The script is running, so the <head> failsafe is not needed - and on
+    // a slow load it could cut the intro off half-way.
+    clearTimeout(window.figmaFailsafe);
+    try { sessionStorage.setItem("figma-seen", "1"); } catch (e) {}
+    window.scrollTo(0, 0);
+
+    var FIG_DRAW = 700, FIG_PRESENT = 800;
+    var figSel = fig.querySelector(".fig__sel");
+    var figSize = fig.querySelector(".fig__size");
+    var figCursor = fig.querySelector(".fig__cursor");
+    var figLayers = fig.querySelector(".fig__layers");
+    var figProps = fig.querySelector(".fig__props");
+    var figLabel = fig.querySelector(".fig__label");
+    var figZoom = fig.querySelector(".fig__zoom");
+    var figScale = 1, figTimers = [], figDone = false, figFrameRow = null;
+    var figWidth = window.innerWidth;
+
+    var FIG_ICONS = {
+      frame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg>',
+      auto: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+      comp: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5l4 4-4 4-4-4zM5.5 8l4 4-4 4-4-4zM18.5 8l4 4-4 4-4-4zM12 14.5l4 4-4 4-4-4z"/></svg>',
+      text: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5h14M12 5v15"/></svg>'
+    };
+
+    // Fit the screen-sized frame into the canvas left between the panels
+    // (none on narrow screens, just a top bar) and the floating toolbar.
+    var figLayout = function () {
+      var w = window.innerWidth, h = window.innerHeight;
+      var wide = w > 900;
+      var side = wide ? 240 : 0, top = wide ? 0 : 44, foot = 72;
+      var pad = wide ? 40 : 16, head = 22;
+      var aw = w - side * 2 - pad * 2, ah = h - top - foot - head - pad * 2;
+      figScale = Math.min(aw / w, ah / h);
+      var x = side + pad + (aw - w * figScale) / 2;
+      var y = top + pad + head + (ah - h * figScale) / 2;
+      figFrame.style.setProperty("--fw", w + "px");
+      figFrame.style.setProperty("--fh", h + "px");
+      figFrame.style.setProperty("--fx", x + "px");
+      figFrame.style.setProperty("--fy", y + "px");
+      figFrame.style.setProperty("--fs", String(figScale));
+      figLabel.style.transform = "translate(" + x + "px," + (y - 20) + "px)";
+      figZoom.textContent = Math.round(figScale * 100) + "%";
+    };
+
+    var figAt = function (ms, fn) { figTimers.push(setTimeout(fn, ms)); };
+
+    // Where an element will sit once its entrance has played: measured
+    // with the animation off. Its paused first frame is restored as is.
+    var figRect = function (el) {
+      el.style.animation = "none";
+      var r = el.getBoundingClientRect();
+      el.style.animation = "";
+      return r;
+    };
+
+    var figHex = function (color) {
+      var m = color.match(/[\d.]+/g);
+      if (!m) return color;
+      return "#" + m.slice(0, 3).map(function (n) {
+        return ("0" + Math.round(Number(n)).toString(16)).slice(-2);
+      }).join("").toUpperCase();
+    };
+
+    var figMove = function (x, y, ms) {
+      figCursor.style.transitionDuration = ms + "ms";
+      figCursor.style.transform = "translate(" + x + "px," + y + "px)";
+    };
+
+    var figToward = function (el, fx, fy, ms) {
+      var r = el.getBoundingClientRect();
+      figMove(r.left + r.width * fx, r.top + r.height * fy, ms);
+    };
+
+    var figClick = function () {
+      figCursor.classList.remove("is-click");
+      void figCursor.offsetWidth;
+      figCursor.classList.add("is-click");
+    };
+
+    var figTool = function (name) {
+      Array.prototype.forEach.call(fig.querySelectorAll(".fig__tool"), function (t) {
+        t.classList.toggle("is-on", t.dataset.tool === name);
+      });
+    };
+
+    var figSelect = function (r, ms) {
+      figSel.style.transitionDuration = (ms || 250) + "ms";
+      figSel.style.transform = "translate(" + r.left + "px," + r.top + "px)";
+      figSel.style.width = r.width + "px";
+      figSel.style.height = r.height + "px";
+      figSel.classList.add("is-on");
+      figSize.textContent = Math.round(r.width / figScale) + " × " + Math.round(r.height / figScale);
+    };
+
+    // New layers go to the top of the frame's children, as in Figma.
+    var figLayer = function (name, icon, child) {
+      var li = document.createElement("li");
+      li.className = "fig__layer" + (child ? " fig__layer--child" : "") +
+        (icon === "comp" ? " fig__layer--comp" : "");
+      li.innerHTML = FIG_ICONS[icon] + "<span></span>";
+      li.lastChild.textContent = name;
+      figLayers.insertBefore(li, child && figFrameRow ? figFrameRow.nextSibling : null);
+      Array.prototype.forEach.call(figLayers.children, function (n) {
+        n.classList.toggle("is-on", n === li);
+      });
+      return li;
+    };
+
+    // The design panel, with the layer's real CSS size, position and styles.
+    var figShow = function (type, r, fill, textEl) {
+      var f = figFrame.getBoundingClientRect();
+      var px = function (v) { return Math.round(v / figScale); };
+      var cell = function (k, v) {
+        return '<span class="fig__field"><em>' + k + "</em>" + v + "</span>";
+      };
+      var html = '<p class="fig__ptype">' + type + "</p>" +
+        '<p class="fig__head">Position</p><div class="fig__grid">' +
+        cell("X", px(r.left - f.left)) + cell("Y", px(r.top - f.top)) + "</div>" +
+        '<p class="fig__head">Layout</p><div class="fig__grid">' +
+        cell("W", px(r.width)) + cell("H", px(r.height)) + "</div>";
+      if (textEl) {
+        var cs = getComputedStyle(textEl);
+        html += '<p class="fig__head">Typography</p>' +
+          '<div class="fig__field fig__field--wide">' +
+          cs.fontFamily.split(",")[0].replace(/["']/g, "") + "</div>" +
+          '<div class="fig__grid">' + cell("Size", Math.round(parseFloat(cs.fontSize))) +
+          cell("Line", Math.round(parseFloat(cs.lineHeight)) || "Auto") + "</div>";
+      }
+      if (fill) {
+        html += '<p class="fig__head">Fill</p><div class="fig__fill"><i style="background:' +
+          fill + '"></i>' + fill.slice(1) + "<span>100%</span></div>";
+      }
+      figProps.innerHTML = html;
+    };
+
+    // A tag's words are split by <br>, which textContent would run together.
+    var figText = function (el) {
+      var words = [];
+      Array.prototype.forEach.call(el.childNodes, function (n) {
+        if (n.nodeType === 3 && n.nodeValue.trim()) words.push(n.nodeValue.trim());
+      });
+      return words.join(" ");
+    };
+
+    var figSteps = [];
+    var figNav = figFrame.querySelector(".nav");
+    var figBadge = figFrame.querySelector(".badge");
+    if (figNav) figSteps.push({ el: figNav, name: "Nav", icon: "auto", type: "Auto layout" });
+    if (figBadge) {
+      figSteps.push({ el: figBadge, name: "ID badge", icon: "comp", type: "Component", fill: "#C6983C" });
+    }
+    Array.prototype.forEach.call(figFrame.querySelectorAll(".hero__tag"), function (tag) {
+      figSteps.push({ el: tag, name: figText(tag), icon: "text", type: "Text", text: true, quick: true });
+    });
+
+    var figPresent = function () {
+      if (figDone) return;
+      figDone = true;
+      figTimers.forEach(clearTimeout);
+      figSteps.forEach(function (s) { s.el.classList.add("fig-placed"); });
+      figFrame.classList.add("fig-drawn");
+      root.classList.add("fig-present");
+      figFrame.style.setProperty("--fx", "0px");
+      figFrame.style.setProperty("--fy", "0px");
+      figFrame.style.setProperty("--fs", "1");
+      setTimeout(function () {
+        root.classList.remove("figma-pending");
+        root.classList.remove("fig-present");
+        figFrame.classList.remove("fig-drawn");
+        figFrame.removeAttribute("style");
+        fig.remove();
+        document.dispatchEvent(new Event("figma-done"));
+      }, FIG_PRESENT);
+    };
+
+    figLayout();
+    figMove(window.innerWidth * 0.62, window.innerHeight * 0.72, 0);
+
+    // 1. Pick the frame tool and drag the frame out.
+    var t = 120;
+    figAt(t, function () { figToward(fig.querySelector('[data-tool="frame"]'), 0.5, 0.5, 380); });
+    t += 420;
+    figAt(t, function () { figClick(); figTool("frame"); });
+    t += 160;
+    figAt(t, function () { figToward(figFrame, 0, 0, 400); });
+    t += 450;
+    figAt(t, function () {
+      var f = figFrame.getBoundingClientRect();
+      figClick();
+      figFrameRow = figLayer("Home", "frame", false);
+      figSelect({ left: f.left, top: f.top, width: 0, height: 0 }, 1);
+      // Two frames on, so the empty box is painted before it grows.
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          figFrame.classList.add("fig-drawn");
+          figSelect(f, FIG_DRAW);
+          figMove(f.right, f.bottom, FIG_DRAW);
+          // The size tag counts up with the box as it grows.
+          var start = performance.now();
+          var count = function (now) {
+            var r = figSel.getBoundingClientRect();
+            figSize.textContent = Math.round(r.width / figScale) + " × " + Math.round(r.height / figScale);
+            if (now - start < FIG_DRAW + 50 && !figDone) requestAnimationFrame(count);
+          };
+          requestAnimationFrame(count);
+        });
+      });
+    });
+    t += FIG_DRAW + 150;
+    figAt(t, function () {
+      figTool("move");
+      figShow("Frame", figFrame.getBoundingClientRect(), figHex(getComputedStyle(figFrame).backgroundColor));
+    });
+    t += 150;
+
+    // 2. Place each layer: move to it, click, and it appears.
+    figSteps.forEach(function (s) {
+      var move = s.quick ? 230 : 420;
+      figAt(t, function () {
+        s.r = figRect(s.el);
+        figMove(s.r.left + s.r.width * 0.6, s.r.top + s.r.height * 0.55, move);
+      });
+      t += move + 40;
+      figAt(t, function () {
+        figClick();
+        figSelect(s.r);
+        s.el.classList.add("fig-placed");
+        figLayer(s.name, s.icon, true);
+        figShow(s.type, s.r, s.text ? figHex(getComputedStyle(s.el).color) : s.fill, s.text ? s.el : null);
+      });
+      t += s.quick ? 120 : 450;
+    });
+
+    // 3. Press Present (the right panel's, or the top bar's on a phone).
+    var figPlay = function () {
+      var plays = fig.querySelectorAll(".fig__play");
+      for (var i = 0; i < plays.length; i++) {
+        if (plays[i].offsetParent !== null) return plays[i];
+      }
+      return plays[0];
+    };
+    t += 350;
+    figAt(t, function () { figToward(figPlay(), 0.5, 0.5, 480); });
+    t += 520;
+    figAt(t, function () { figClick(); figPlay().classList.add("is-on"); });
+    t += 220;
+    figAt(t, figPresent);
+
+    fig.addEventListener("click", figPresent);
+    document.addEventListener("keydown", figPresent, { once: true });
+    window.addEventListener("wheel", figPresent, { once: true, passive: true });
+    // Phones fire resize as the address bar moves; only a real change of
+    // width (a rotation, a resized window) throws the layout off.
+    window.addEventListener("resize", function () {
+      if (window.innerWidth !== figWidth) figPresent();
+    });
+  }
 
   // "Exporting" intro on the videography page. The ring runs on a fixed
   // clock but holds at 99% until the page has really loaded (or MAX_WAIT

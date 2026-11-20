@@ -22,10 +22,78 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Boldonse&family=Inter:wght@400;700&display=swap">
 <script>try { if (localStorage.getItem("theme") === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}</script>
-<link rel="stylesheet" href="css/style.css?v=46ea2860">
+<!-- The "built in Figma" intro plays once per visit (per tab session), and
+     never for reduced motion. Deciding here, before first paint, keeps the
+     page from flashing first. The timeout is a failsafe in case main.js
+     never runs to remove it. -->
+<script>try { if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !sessionStorage.getItem("figma-seen")) { document.documentElement.classList.add("figma-pending"); window.figmaFailsafe = setTimeout(function () { document.documentElement.classList.remove("figma-pending"); }, 10000); } } catch (e) {}</script>
+<link rel="stylesheet" href="css/style.css?v=a2ccef64">
 </head>
 <body>
 
+<!-- Intro: the page shown being built in a Figma-style editor. While <html>
+     has .figma-pending, .fig-frame is shrunk onto the canvas between these
+     panels; main.js walks the cursor through placing each layer, then
+     "presents" and removes all of this. Without JS it is never shown. -->
+<div class="fig" aria-hidden="true">
+  <div class="fig__top">
+    <span class="fig__logo">S</span>
+    <span><b>Portfolio</b> <small>/ Home</small></span>
+    <span class="fig__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg></span>
+    <span class="fig__sharebtn">Share</span>
+  </div>
+
+  <aside class="fig__left">
+    <div class="fig__file">
+      <span class="fig__logo">S</span>
+      <span><b>Portfolio</b><small>Drafts</small></span>
+    </div>
+    <div class="fig__tabs"><span class="is-on">File</span><span>Assets</span></div>
+    <p class="fig__head">Pages</p>
+    <ul class="fig__pages">
+      <li class="is-on">Home</li>
+      <li>About</li>
+      <li>Projects</li>
+      <li>Mobile videography</li>
+      <li>Contact</li>
+    </ul>
+    <p class="fig__head">Layers</p>
+    <ul class="fig__layers"></ul>
+  </aside>
+
+  <aside class="fig__right">
+    <div class="fig__share">
+      <span class="fig__avatar">SJ</span>
+      <span class="fig__play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg></span>
+      <span class="fig__sharebtn">Share</span>
+    </div>
+    <div class="fig__tabs"><span class="is-on">Design</span><span>Prototype</span></div>
+    <div class="fig__props"></div>
+  </aside>
+
+  <div class="fig__toolbar">
+    <span class="fig__tool is-on" data-tool="move"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3.5l12.5 7-5.6 1.6-2.6 5.4z"/></svg></span>
+    <span class="fig__tool" data-tool="frame"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M8 3v18M16 3v18M3 8h18M3 16h18"/></svg></span>
+    <span class="fig__tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></span>
+    <span class="fig__tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3l6 8-6 10-6-10z"/><circle cx="12" cy="12" r="1.6"/></svg></span>
+    <span class="fig__tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M6 6h12M12 6v13"/></svg></span>
+    <span class="fig__tool"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M4 5h16v11H10l-6 4z"/></svg></span>
+    <span class="fig__div"></span>
+    <span class="fig__zoom">100%</span>
+  </div>
+
+  <p class="fig__skip">Click anywhere to skip</p>
+  <span class="fig__label">Home</span>
+  <div class="fig__sel"><i></i><i></i><i></i><i></i><span class="fig__size"></span></div>
+  <div class="fig__cursor">
+    <svg viewBox="0 0 18 18"><path d="M2 2l4.8 14 2.3-5.9L15 7.8z" fill="#c6983c" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/></svg>
+    <span>Jeffrey</span>
+  </div>
+</div>
+
+<!-- The whole page, wrapped so the intro can place it on the canvas as one
+     frame. Once the intro has gone this is a plain block. -->
+<div class="fig-frame">
 <header>
   <nav class="nav" aria-label="Primary">
     <a class="nav__brand" href="index.html">SARPONG JEFFREY</a>
@@ -101,6 +169,7 @@
   <span class="next__hint">Keep scrolling, or tap to continue</span>
   <span class="next__bar" aria-hidden="true"></span>
 </a>
+</div>
 <!-- Back to top; main.js shows it once the visitor is well down the page. -->
 <button class="totop" type="button" aria-label="Back to top" hidden>
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
@@ -121,6 +190,6 @@
   </span>
 </a>
 
-<script src="js/main.js?v=ad298b38"></script>
+<script src="js/main.js?v=316f2c55"></script>
 </body>
 </html>
