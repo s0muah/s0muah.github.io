@@ -2083,36 +2083,53 @@ a.contact__value:focus-visible {
 
   .nav__brand, .nav__link { font-size: 0.8rem; }
 
-  /* Phones keep the roles beside the card, as on a laptop, two down each
-     side. Width is what runs out, so the card takes 42vw and each side
-     column gets the rest: (100vw - 42vw - two gutters - two gaps) / 2,
-     about 29vw - 2rem. The words are sized off that column, so the longest
-     unbreakable one (VOLUNTEER, ~6.8em in Boldonse) always fits; MOBILE
-     VIDEOGRAPHER may break at its soft hyphen. The hero fills the first
-     screen, so the card hangs in the middle on a longer strap, with the two
-     rows of roles level with its upper and lower quarters. */
+  /* On a phone there is no room for words beside the card: squeezed into
+     the corners they ran into the strap and floated far below the card. So
+     the hero becomes a plain column instead - the badge on a short strap,
+     then the four roles in a two-by-two grid under it. Only below 640px:
+     a laptop window at half width keeps the roles beside the card. */
   @media (max-width: 640px) {
   .hero {
-    --badge-w: 42vw;
-    --hero-h: max(100vh - 5.5rem, var(--badge-w) * 1.45 + 11rem);
-    --hero-h: max(100svh - 5.5rem, var(--badge-w) * 1.45 + 11rem);
-    --badge-y: 0.5;
-    --side: calc(29vw - 2.4rem);
-    height: var(--hero-h);
+    height: auto;
     min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1rem;
+    row-gap: 1rem;
+    align-items: start;
+    /* The bottom padding keeps the last row clear of the floating player. */
+    padding: 0 var(--gutter) 6.5rem;
+    /* Small enough that the card and both rows of roles fit the first
+       screen above the player (about 25rem of nav, strap, roles and player
+       besides the card), but never so small the card stops reading. */
+    --badge-w: min(76vw, 340px, max(46vw, (100vh - 25rem) / 1.45));
+    --badge-w: min(76vw, 340px, max(46vw, (100svh - 25rem) / 1.45));
   }
+
+  .badge {
+    position: relative;
+    top: auto;
+    left: auto;
+    translate: none;
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .badge__strap { height: clamp(2rem, 6vh, 3.5rem); }
 
   .hero__tag {
-    top: calc(var(--hero-h) * var(--badge-y) - var(--badge-w) * 0.36);
-    width: var(--side);
-    font-size: min(calc(var(--side) / 7), 1.1rem);
-    line-height: 1.35;
+    position: static;
+    translate: none;
+    font-size: clamp(0.78rem, 3.7vw, 1rem);
+    line-height: 1.45;
     white-space: normal;
-    hyphens: manual;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--hairline);
   }
 
-  .hero__tag--bl,
-  .hero__tag--br { top: calc(var(--hero-h) * var(--badge-y) + var(--badge-w) * 0.36); }
+  .hero__tag--tr,
+  .hero__tag--br { text-align: right; }
   }
 
   /* Single column. The heading leads so the page reads before it is scrolled;
